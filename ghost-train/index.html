@@ -195,6 +195,46 @@ textarea{font:inherit;font-size:17px;width:100%;min-height:96px;padding:10px 12p
 .tpanel .sol{font-size:14px;background:#f4f1fb;border-radius:10px;padding:8px 12px;margin:6px 0}
 .tpanel .sol b{display:block}
 .tpanel .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+/* ---------- spooky fx ---------- */
+.coaster{position:relative;margin:4px -4px 12px;border-radius:16px;background:linear-gradient(#1b0f38,#2a1656);overflow:hidden}
+.coaster svg{display:block;width:100%;height:auto}
+.coaster .cap{position:absolute;left:12px;top:8px;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+#fx{position:fixed;inset:0;z-index:45;pointer-events:none;overflow:hidden}
+.scare{position:absolute;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.say{position:absolute;white-space:nowrap;background:#fff;color:#1d1338;font-weight:800;font-size:15px;padding:8px 12px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.35);max-width:70vw;white-space:normal;width:max-content}
+.say::after{content:"";position:absolute;left:18px;bottom:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+.s-fly{animation:fly 7s linear forwards}
+@keyframes fly{0%{transform:translate(-160px,0)}25%{transform:translate(25vw,-40px)}50%{transform:translate(50vw,30px)}75%{transform:translate(75vw,-30px)}100%{transform:translate(calc(100vw + 200px),10px)}}
+.s-flyback{animation:flyback 6s linear forwards}
+@keyframes flyback{0%{transform:translate(calc(100vw + 40px),0) scaleX(-1)}50%{transform:translate(45vw,60px) scaleX(-1)}100%{transform:translate(-240px,-20px) scaleX(-1)}}
+.flap{animation:flap .25s ease-in-out infinite alternate;transform-origin:50% 55%}
+@keyframes flap{to{transform:scaleY(.45)}}
+.s-drop{animation:drop 5.5s ease-in-out forwards}
+@keyframes drop{0%{transform:translateY(-110%)}18%{transform:translateY(0)}24%{transform:translateY(-14px)}30%,80%{transform:translateY(0)}100%{transform:translateY(-110%)}}
+.s-peek{animation:peek 5s ease-in-out forwards}
+@keyframes peek{0%{transform:translateY(100%)}15%,80%{transform:translateY(0)}20%,30%{transform:translateY(0) rotate(-6deg)}25%{transform:translateY(0) rotate(6deg)}100%{transform:translateY(100%)}}
+.s-side{animation:side 5s ease-in-out forwards}
+@keyframes side{0%{transform:translateX(-100%)}15%,80%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+.s-fade{animation:fadeio 5s ease-in-out forwards}
+@keyframes fadeio{0%,100%{opacity:0}15%,85%{opacity:1}}
+.blink{animation:blink 2.2s infinite}
+@keyframes blink{0%,44%,52%,100%{transform:scaleY(1)}48%{transform:scaleY(.1)}}
+.flee{animation:flee .6s ease-in forwards!important}
+@keyframes flee{to{transform:translate(0,-120vh) rotate(25deg) scale(.4);opacity:0}}
+.shake{animation:shake .5s 2}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-8px,3px) rotate(-.6deg)}40%{transform:translate(7px,-4px) rotate(.6deg)}60%{transform:translate(-6px,2px)}80%{transform:translate(5px,-2px)}}
+.boo{animation:boo .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes boo{0%{transform:scale(.1) rotate(-20deg);opacity:0}60%{transform:scale(1.35) rotate(4deg);opacity:1}100%{transform:scale(1)}}
+.boo-t{font-family:var(--f-head);font-weight:900;font-size:64px;color:#fff;text-shadow:0 0 12px var(--pink),0 0 30px var(--pink);letter-spacing:.05em;animation:boo .6s .15s cubic-bezier(.2,1.6,.4,1) both}
+.conf{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:conf linear forwards}
+@keyframes conf{to{transform:translate(var(--dx),110vh) rotate(var(--r))}}
+.eyes{position:absolute;right:16px;top:14px;display:flex;gap:16px;opacity:.9}
+.eyes i{display:block;width:18px;height:10px;border-radius:50%;background:#ffd23f;box-shadow:0 0 10px #ffd23f}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.tg{min-height:44px;border-radius:999px;border:1px solid #4a3290;background:var(--panel);color:var(--ink);padding:6px 12px;font-weight:700;font-size:14px}
+.tg[aria-pressed="false"]{opacity:.6}
+.hero-ghost{cursor:pointer}
+@media (prefers-reduced-motion:reduce){.s-fly,.s-flyback,.s-drop,.s-peek,.s-side,.s-fade,.flap,.blink,.shake,.boo,.boo-t,.conf{animation:none!important}}
 </style>
 </head>
 <body>
@@ -204,6 +244,7 @@ textarea{font:inherit;font-size:17px;width:100%;min-height:96px;padding:10px 12p
     <div class="pill"><span class="k">Park closes</span><span id="clock">60:00</span></div>
     <div class="pill"><span class="k">Hints</span><span id="hints">💡💡💡</span></div>
     <div class="pill inv" id="inv"></div>
+    <div class="toggles"><button class="tg" id="sndBtn" aria-pressed="false">🔇 Sound</button><button class="tg" id="scBtn" aria-pressed="true">👻 Scares</button></div>
   </div>
   <main id="app"></main>
 </div>
@@ -241,7 +282,7 @@ function norm(s,strip){
 }
 
 /* ---------- state ---------- */
-function fresh(){return {v:1,team:"",started:false,remaining:TOTAL_MS,door:0,step:0,letters:[],hintsLeft:MAX_HINTS,hintUsed:{},guess:"",drafts:{},lockUntil:0,finished:false,finishRemaining:null,reflection:"",overtimeShown:false,stepsDone:{}};}
+function fresh(){return {v:1,team:"",started:false,remaining:TOTAL_MS,door:0,step:0,letters:[],hintsLeft:MAX_HINTS,hintUsed:{},guess:"",drafts:{},lockUntil:0,finished:false,finishRemaining:null,reflection:"",overtimeShown:false,stepsDone:{},carAt:0,sound:false,scares:true};}
 let S = fresh();
 try{const raw=localStorage.getItem(KEY); if(raw){const o=JSON.parse(raw); if(o&&o.v===1) S=Object.assign(fresh(),o);}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -267,6 +308,9 @@ document.addEventListener("visibilitychange",()=>{last=performance.now(); save()
 function toast(t,ms){let el=document.querySelector(".toast"); if(!el){el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); document.body.appendChild(el);} el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{el.hidden=true;},ms||3000);}
 
 function renderBar(){
+  const sb=document.getElementById("sndBtn"), cb=document.getElementById("scBtn");
+  sb.textContent=S.sound?"🔊 Sound":"🔇 Sound"; sb.setAttribute("aria-pressed",S.sound); cb.textContent=S.scares?"👻 Scares on":"👻 Scares off"; cb.setAttribute("aria-pressed",S.scares);
+  sb.onclick=()=>{S.sound=!S.sound; save(); renderBar(); if(S.sound) sfx("boo");}; cb.onclick=()=>{S.scares=!S.scares; save(); renderBar(); if(S.scares) spawnScare(2);};
   const bar=document.getElementById("bar"); bar.hidden=!S.started;
   document.getElementById("hints").textContent=S.hintsLeft>0?"💡".repeat(S.hintsLeft):"–";
   document.getElementById("inv").innerHTML=DATA.doors.map((d,i)=>`<span class="${S.letters[i]?"got":""}" aria-label="letter ${i+1}">${S.letters[i]||"?"}</span>`).join("");
@@ -287,9 +331,112 @@ function heroSVG(){
   <path d="M150 110 V300 M290 230 V300 M420 140 V300 M70 190 V300" stroke="#5a3ea8" stroke-width="5"/>
   <g transform="translate(118 84) rotate(8)"><rect width="56" height="22" rx="6" fill="#36e3d4"/><circle cx="14" cy="24" r="5" fill="#111"/><circle cx="42" cy="24" r="5" fill="#111"/><circle cx="16" cy="-4" r="6" fill="#ffcf9e"/><circle cx="38" cy="-4" r="6" fill="#d9a77a"/></g>
   <g transform="translate(560 160)"><path d="M0 140 V40 L70 0 L140 40 V140Z" fill="#3a2370"/><path d="M40 140 V80 a30 30 0 0 1 60 0 V140Z" fill="#150c2c"/><text x="70" y="34" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="800" font-size="14" fill="#ffd23f">GHOST TRAIN</text></g>
-  <g transform="translate(655 205) scale(0.9)" class="flicker">${ghostSVG(56).replace(/<svg[^>]*>|<\/svg>/g,"")}</g>
+  <g transform="translate(655 205) scale(0.9)" class="flicker hero-ghost">${ghostSVG(56).replace(/<svg[^>]*>|<\/svg>/g,"")}</g>
   <rect y="290" width="980" height="10" fill="#150c2c"/>
   </svg>`;
+}
+
+/* ---------- spooky fx: sound ---------- */
+let AC=null;
+function ac(){if(!S.sound) return null; try{AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume();}catch(e){AC=null;} return AC;}
+function tone(type,f0,f1,dur,vol,delay){const a=ac(); if(!a) return; const t=a.currentTime+(delay||0); const o=a.createOscillator(), g=a.createGain(); o.type=type; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+0.05);}
+function noise(dur,vol,f0,f1){const a=ac(); if(!a) return; const n=a.createBuffer(1,a.sampleRate*dur,a.sampleRate), d=n.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; const s=a.createBufferSource(); s.buffer=n; const bp=a.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=2; bp.frequency.setValueAtTime(f0,a.currentTime); bp.frequency.exponentialRampToValueAtTime(f1,a.currentTime+dur); const g=a.createGain(); g.gain.setValueAtTime(vol,a.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+dur); s.connect(bp).connect(g).connect(a.destination); s.start();}
+const SFX={
+  boo:()=>{tone("sawtooth",220,70,1.0,.25); tone("sine",110,55,1.1,.25);},
+  whoosh:()=>noise(.9,.5,300,2500),
+  ding:()=>{tone("sine",880,880,.25,.2); tone("sine",1320,1320,.35,.15,.12);},
+  scream:()=>{tone("triangle",520,900,.7,.12); tone("triangle",540,950,.7,.08,.05);},
+  laugh:()=>{[0,1,2,3].forEach(i=>tone("square",700-i*60,640-i*60,.12,.07,i*.16));},
+  knock:()=>{[0,.18,.5].forEach(d=>{tone("sine",140,60,.12,.5,d);});},
+  creak:()=>{tone("sawtooth",90,140,.8,.05); tone("sawtooth",95,150,.8,.04,.1);},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>tone("triangle",f,f,.3,.15,i*.13));}
+};
+function sfx(k){try{SFX[k]&&SFX[k]();}catch(e){}}
+const RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- spooky fx: figures ---------- */
+const ART={
+  bat:`<svg width="130" height="66" viewBox="0 0 120 60"><g class="flap"><path d="M60 30 C50 10 30 5 4 15 C20 20 22 30 18 42 C30 33 40 36 48 44 C52 37 56 35 60 35 C64 35 68 37 72 44 C80 36 90 33 102 42 C98 30 100 20 116 15 C90 5 70 10 60 30Z" fill="#120a24" stroke="#6d58b5" stroke-width="1.5"/></g><path d="M53 24 L55 14 L58 23 M62 23 L65 14 L67 24" fill="#120a24"/><circle cx="56" cy="29" r="3" fill="#ff3b3b"/><circle cx="64" cy="29" r="3" fill="#ff3b3b"/><path d="M57 35 l2 4 1-4 M61 35 l1 4 2-4" fill="#fff"/></svg>`,
+  ghost:`<svg width="140" height="150" viewBox="0 0 64 70"><path d="M10 30a22 22 0 0 1 44 0v32l-7-6-7 6-7-6-7 6-7-6-6 6z" fill="#f6f1ff" opacity=".96"/><ellipse cx="24" cy="28" rx="5" ry="7" fill="#22123f"/><ellipse cx="40" cy="28" rx="5" ry="7" fill="#22123f"/><ellipse cx="32" cy="44" rx="7" ry="6" fill="#22123f"/><circle cx="25" cy="26" r="1.8" fill="#fff"/><circle cx="41" cy="26" r="1.8" fill="#fff"/><path d="M8 40 q-8 -2 -6 -10 M56 40 q8 -2 6 -10" stroke="#f6f1ff" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`,
+  spider:`<svg width="110" height="330" viewBox="0 0 110 330"><line x1="55" y1="0" x2="55" y2="250" stroke="#d8d0f0" stroke-width="1.5"/><g stroke="#120a24" stroke-width="5" stroke-linecap="round" fill="none"><path d="M45 262 L18 240 L8 256 M45 270 L12 268 L4 286 M47 278 L18 296 L14 316 M65 262 L92 240 L102 256 M65 270 L98 268 L106 286 M63 278 L92 296 L96 316"/></g><ellipse cx="55" cy="252" rx="13" ry="11" fill="#120a24"/><ellipse cx="55" cy="276" rx="19" ry="21" fill="#120a24"/><circle cx="50" cy="250" r="3.2" fill="#ff3b3b"/><circle cx="60" cy="250" r="3.2" fill="#ff3b3b"/><circle cx="55" cy="277" r="5" fill="#ff4fa3" opacity=".6"/></svg>`,
+  hand:`<svg width="150" height="190" viewBox="0 0 150 190"><g fill="#efe8d8" stroke="#8a8270" stroke-width="2"><rect x="55" y="120" width="40" height="80" rx="10"/><rect x="46" y="88" width="58" height="42" rx="14"/><rect x="40" y="30" width="13" height="64" rx="6.5"/><rect x="58" y="12" width="13" height="80" rx="6.5"/><rect x="76" y="16" width="13" height="76" rx="6.5"/><rect x="94" y="34" width="13" height="62" rx="6.5"/><rect x="104" y="80" width="38" height="13" rx="6.5" transform="rotate(-35 104 86)"/></g><g stroke="#8a8270" stroke-width="2"><path d="M41 52h11M59 38h11M77 42h11M95 56h11M59 62h11M77 64h11"/></g></svg>`,
+  eyes:`<svg width="120" height="50" viewBox="0 0 120 50"><g class="blink" style="transform-origin:center"><ellipse cx="32" cy="25" rx="20" ry="13" fill="#ffd23f"/><ellipse cx="88" cy="25" rx="20" ry="13" fill="#ffd23f"/><ellipse cx="34" cy="25" rx="5" ry="11" fill="#120a24"/><ellipse cx="90" cy="25" rx="5" ry="11" fill="#120a24"/></g></svg>`,
+  pumpkin:`<svg width="120" height="110" viewBox="0 0 120 110"><path d="M60 22 q-2 -14 8 -20" stroke="#3a7d2c" stroke-width="7" fill="none" stroke-linecap="round"/><ellipse cx="38" cy="64" rx="30" ry="40" fill="#ff8a1f"/><ellipse cx="82" cy="64" rx="30" ry="40" fill="#ff8a1f"/><ellipse cx="60" cy="64" rx="26" ry="42" fill="#ff9f43"/><path d="M34 52 l12 -10 6 14z M86 52 l-12 -10 -6 14z" fill="#3a1a00"/><path d="M32 74 q28 26 56 0 l-8 4 -6 -6 -6 7 -6 -7 -6 7 -6 -7 -6 6z" fill="#3a1a00"/></svg>`
+};
+const SCARES=[
+  {a:"bat",cls:"s-fly",pos:{top:"18vh",left:"0"},say:"Bats only come out at night! (l. 36)",snd:"whoosh"},
+  {a:"ghost",cls:"s-flyback",pos:{top:"30vh",left:"0"},say:"Boooo! I'm the ghost of a German man from the 1800s!",snd:"boo"},
+  {a:"spider",cls:"s-drop",pos:{top:"0",right:"14vw"},say:"Don't worry … I only eat wrong answers.",snd:"creak",sayPos:{top:"250px",right:"115px"}},
+  {a:"hand",cls:"s-peek",pos:{bottom:"0",left:"12vw"},say:"Psst … need a hand? That's an idiom!",snd:"creak",sayPos:{bottom:"200px",left:"40px"}},
+  {a:"eyes",cls:"s-fade",pos:{top:"40vh",right:"4vw"},say:"I'm watching you … keep an eye on the clock!",snd:"laugh",sayPos:{top:"-58px",right:"0"}},
+  {a:"pumpkin",cls:"s-side",pos:{bottom:"18vh",left:"0"},say:"Hihihi! Think on your feet!",snd:"laugh",sayPos:{top:"-56px",left:"30px"}},
+  {a:"knock",say:"KNOCK, KNOCK! … Who's there? … BOO!",snd:"knock"}
+];
+let scareT=null, lastScare=-1;
+function fx(){let f=document.getElementById("fx"); if(!f){f=document.createElement("div"); f.id="fx"; document.body.appendChild(f);} return f;}
+function spawnScare(i){
+  if(!S.scares||RM) return;
+  if(i==null){do{i=Math.floor(Math.random()*SCARES.length);}while(i===lastScare); }
+  lastScare=i; const sc=SCARES[i]; sfx(sc.snd);
+  if(sc.a==="knock"){const w=document.querySelector(".wrap"); w.classList.remove("shake"); void w.offsetWidth; w.classList.add("shake"); toast("👊 "+sc.say,3500); return;}
+  const el=document.createElement("div"); el.className="scare "+sc.cls; Object.assign(el.style,sc.pos); el.innerHTML=ART[sc.a];
+  const b=document.createElement("div"); b.className="say"; b.textContent=sc.say; Object.assign(b.style,sc.sayPos||{top:"-56px",left:"20px"}); el.appendChild(b);
+  if(sc.cls==="s-flyback") b.style.transform="scaleX(-1)";
+  el.onclick=()=>{sfx("laugh"); b.textContent="Eeek! You found me!"; el.classList.add("flee"); setTimeout(()=>el.remove(),700);};
+  fx().appendChild(el); setTimeout(()=>el.remove(),7600);
+}
+function scheduleScare(first){
+  clearTimeout(scareT);
+  const ms=first?40000:(75000+Math.random()*75000);
+  scareT=setTimeout(()=>{ if(S.started&&!S.finished&&!document.getElementById("lockOv")&&!document.hidden) spawnScare(); scheduleScare(false); },ms);
+}
+function confetti(n){
+  if(RM) return; const f=fx(); const cols=["#ffd23f","#ff4fa3","#36e3d4","#8b6cff","#ff9f43"];
+  for(let i=0;i<(n||50);i++){const c=document.createElement("i"); c.className="conf"; c.style.left=(Math.random()*100)+"vw"; c.style.background=cols[i%5]; c.style.setProperty("--dx",(Math.random()*160-80)+"px"); c.style.setProperty("--r",(Math.random()*720)+"deg"); c.style.animationDuration=(1.8+Math.random()*1.6)+"s"; c.style.animationDelay=(Math.random()*.4)+"s"; f.appendChild(c); setTimeout(()=>c.remove(),4200);}
+}
+
+/* ---------- animated roller coaster on the map ---------- */
+const ST_Y=[178,72,182,42,170,84,176,58];
+function coasterSVG(){
+  const xs=ST_Y.map((_,i)=>70+i*120);
+  let d=`M0 ${ST_Y[0]} L${xs[0]} ${ST_Y[0]}`;
+  for(let i=1;i<xs.length;i++){d+=` C${xs[i-1]+55} ${ST_Y[i-1]} ${xs[i]-55} ${ST_Y[i]} ${xs[i]} ${ST_Y[i]}`;}
+  d+=` C${xs[7]+40} ${ST_Y[7]} 960 150 1000 150`;
+  const stations=xs.map((x,i)=>{const done=i<S.door, cur=i===S.door; const lab=i<7?(done?DATA.doors[i].letter:String(i+1)):"🚪";
+    return `<g transform="translate(${x} ${ST_Y[i]+24})"><circle r="14" fill="${done?"#ffd23f":(cur?"#ff4fa3":"#3a2370")}" stroke="#150c2c" stroke-width="3"/><text y="5" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="900" font-size="${i<7?14:13}" fill="${done?"#3a2a00":"#fff"}">${lab}</text></g>`;}).join("");
+  return `<svg viewBox="0 0 1000 230" role="img" aria-label="Roller coaster: your car moves one station further with every door you open">
+    <g id="supports" stroke="#4a3290" stroke-width="4"></g>
+    <path id="trk" d="${d}" fill="none" stroke="#ff4fa3" stroke-width="7" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="#ffd6ea" stroke-width="1.5" stroke-dasharray="3 9"/>
+    ${stations}
+    <g id="tunnel" transform="translate(905 100)"><path d="M0 130 V40 a50 50 0 0 1 100 0 V130Z" fill="#3a2370"/><path d="M22 130 V52 a28 28 0 0 1 56 0 V130Z" fill="#0c0618"/><text x="50" y="24" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="900" font-size="11" fill="#ffd23f">EXIT</text></g>
+    <g id="car"><g id="carBody"><rect x="-28" y="-24" width="56" height="20" rx="6" fill="#36e3d4" stroke="#0b2b2a" stroke-width="2"/><circle cx="-16" cy="-3" r="5" fill="#111"/><circle cx="16" cy="-3" r="5" fill="#111"/>
+      <g id="riders"><circle cx="-12" cy="-31" r="7" fill="#ffcf9e"/><circle cx="10" cy="-31" r="7" fill="#d9a77a"/><g id="arms" stroke="#ffcf9e" stroke-width="3" stroke-linecap="round" opacity="0"><path d="M-17 -34 l-6 -12 M-7 -34 l4 -13 M5 -34 l-4 -13 M15 -34 l6 -12"/></g>
+      <g fill="#150c2c"><circle cx="-14" cy="-32" r="1.3"/><circle cx="-10" cy="-32" r="1.3"/><circle cx="8" cy="-32" r="1.3"/><circle cx="12" cy="-32" r="1.3"/></g><ellipse id="m1" cx="-12" cy="-28" rx="2" ry="1" fill="#150c2c"/><ellipse id="m2" cx="10" cy="-28" rx="2" ry="1" fill="#150c2c"/></g></g>
+      <g id="aah" opacity="0"><rect x="-40" y="-78" width="80" height="26" rx="10" fill="#fff"/><text x="0" y="-60" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="900" font-size="15" fill="#d6281c">AAAAH!</text></g></g>
+  </svg>`;
+}
+let rideRAF=null;
+function mountCoaster(){
+  const p=document.getElementById("trk"); if(!p) return;
+  const L=p.getTotalLength(); const xs=ST_Y.map((_,i)=>70+i*120);
+  const lenAt=x=>{let lo=0,hi=L; for(let k=0;k<30;k++){const m=(lo+hi)/2; if(p.getPointAtLength(m).x<x) lo=m; else hi=m;} return (lo+hi)/2;};
+  const stL=xs.map(lenAt);
+  const sup=document.getElementById("supports"); let s="";
+  for(let l=20;l<L;l+=38){const pt=p.getPointAtLength(l); if(pt.x>895) break; s+=`<line x1="${pt.x}" y1="${pt.y+4}" x2="${pt.x}" y2="230"/>`;} sup.innerHTML=s;
+  const car=document.getElementById("car"), arms=document.getElementById("arms"), aah=document.getElementById("aah");
+  const place=l=>{const a=p.getPointAtLength(Math.max(0,l-3)), b=p.getPointAtLength(Math.min(L,l+3)); const pt=p.getPointAtLength(l); const ang=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI; car.setAttribute("transform",`translate(${pt.x} ${pt.y-3}) rotate(${ang})`); return ang;};
+  const target=Math.min(S.door,7); let from=S.carAt==null?target:Math.min(S.carAt,target);
+  cancelAnimationFrame(rideRAF);
+  if(from===target||RM){place(stL[target]); S.carAt=target; save(); return;}
+  const L0=stL[from], L1=stL[target], dur=1800+900*(target-from); let t0=null, screamed=false;
+  sfx("creak");
+  const step=ts=>{if(t0==null) t0=ts; let u=Math.min(1,(ts-t0)/dur); const e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2; const ang=place(L0+(L1-L0)*e);
+    const down=ang>22; arms.setAttribute("opacity",down?1:0); aah.setAttribute("opacity",down?1:0); aah.setAttribute("transform",`rotate(${-ang})`);
+    if(down&&!screamed){screamed=true; sfx("scream");} if(!down) screamed=false;
+    if(u<1) rideRAF=requestAnimationFrame(step); else {arms.setAttribute("opacity",0); aah.setAttribute("opacity",0); S.carAt=target; save(); if(target<7&&S.scares&&!RM){setTimeout(()=>spawnScare(Math.random()<.5?1:0),500);}}
+  };
+  rideRAF=requestAnimationFrame(step);
 }
 
 /* ---------- screens ---------- */
@@ -316,10 +463,14 @@ function renderStart(){
     <label for="team" style="font-weight:700">Your team name</label>
     <div class="field"><input id="team" maxlength="30" autocomplete="off" placeholder="e.g. The Brave Bats" value="${esc(S.team)}"><button class="btn" id="go">Start the ride</button></div>
     <p class="small" style="color:var(--muted);font-size:14px;margin:0">No real names, please – just a fun team name.</p>
+    <div class="toggles"><button class="tg" id="stScare" aria-pressed="${S.scares}">👻 Scary surprises: ${S.scares?"on":"off"}</button><button class="tg" id="stSnd" aria-pressed="${S.sound}">${S.sound?"🔊 Sound: on":"🔇 Sound: off"}</button></div>
   </div></section>`;
   const go=document.getElementById("go"), t=document.getElementById("team");
-  go.onclick=()=>{const v=t.value.trim(); if(!v){t.focus(); toast("Please type a team name first."); return;} S.team=v; S.started=true; S.remaining=TOTAL_MS; last=performance.now(); save(); view="map"; render(); window.scrollTo(0,0);};
+  go.onclick=()=>{const v=t.value.trim(); if(!v){t.focus(); toast("Please type a team name first."); return;} S.team=v; S.started=true; S.remaining=TOTAL_MS; S.carAt=0; scheduleScare(true); last=performance.now(); save(); view="map"; render(); window.scrollTo(0,0);};
   t.onkeydown=e=>{if(e.key==="Enter") go.click();};
+  document.getElementById("stScare").onclick=()=>{S.scares=!S.scares; save(); renderStart();};
+  document.getElementById("stSnd").onclick=()=>{S.sound=!S.sound; save(); if(S.sound) sfx("boo"); renderStart();};
+  const hg=app.querySelector(".hero-ghost"); if(hg) hg.addEventListener("click",()=>{sfx("laugh"); toast("👻 Hihihi! You can't scare me!");});
 }
 function renderMap(){
   const cards=DATA.doors.map((d,i)=>{
@@ -331,14 +482,15 @@ function renderMap(){
       <span class="st">${st==="done"?"✓ open":(st==="open"?"▶ Go in":"locked")}</span></button>`;}).join("");
   const fin=S.door>=DATA.doors.length;
   app.innerHTML=`<section class="mapbox">
-    <svg class="track" viewBox="0 0 980 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 C120 100 140 20 240 20 C340 20 360 100 480 100 C600 100 620 20 720 20 C820 20 840 100 980 100" fill="none" stroke="#ff4fa3" stroke-width="6"/></svg>
     <h2 class="neon cyan" style="font-size:24px">The ghost train tunnel</h2>
     <p>${fin?"All seven doors are open! Now go to the exit gate.":"Open the doors one after the other. The glowing door is the next one."}</p>
+    <div class="coaster">${coasterSVG()}</div>
     <div class="doors">${cards}
       <button class="door ${fin?"open":"locked"}" id="exitBtn" ${fin?"":"disabled"}><span class="no">Exit</span><span class="ic">${fin?"🚪":"🔒"}</span><span class="t">The Exit Gate</span><span class="s">Type the code word</span><span class="st">${fin?"▶ Escape!":"locked"}</span></button>
     </div></section>`;
   app.querySelectorAll(".door[data-i]").forEach(b=>b.onclick=()=>{const i=+b.dataset.i; if(i!==S.door) return; view="door"; render(); window.scrollTo(0,0);});
   const ex=document.getElementById("exitBtn"); if(fin) ex.onclick=()=>{view="final"; render(); window.scrollTo(0,0);};
+  mountCoaster();
 }
 
 function stepKey(){return DATA.doors[S.door].id+"-"+S.step;}
@@ -348,7 +500,7 @@ function renderDoor(){
   const d=DATA.doors[S.door]; const st=d.steps[S.step]; const k=stepKey();
   const dots=d.steps.map((x,i)=>`<i class="${i<S.step?"ok":(i===S.step?"on":"")}"></i>`).join("");
   app.innerHTML=`<section class="room">
-    <div class="room-head"><span class="ic">${d.icon}</span><div><div class="no">Door ${S.door+1} of 7 · Part ${S.step+1} of ${d.steps.length}</div><h2 class="neon" style="font-size:24px">${esc(d.title)}</h2><div class="sub">${esc(d.sub)}</div></div></div>
+    <div class="room-head" style="position:relative">${S.scares?`<div class="eyes blink" aria-hidden="true"><i></i><i></i></div>`:""}<span class="ic">${d.icon}</span><div><div class="no">Door ${S.door+1} of 7 · Part ${S.step+1} of ${d.steps.length}</div><h2 class="neon" style="font-size:24px">${esc(d.title)}</h2><div class="sub">${esc(d.sub)}</div></div></div>
     <div class="room-story">${ghostSVG(34)}<span>${esc(d.story)}</span></div>
     <div class="steps">${dots}</div>
     <div class="task" id="task"></div>
@@ -482,7 +634,9 @@ function check(st){
 function stepDone(){
   const d=DATA.doors[S.door];
   S.stepsDone[stepKey()]=true; sel=null;
+  sfx("ding");
   if(S.step<d.steps.length-1){S.step++; save(); render(); window.scrollTo(0,0); toast("✓ Correct! On to part "+(S.step+1)+"."); return;}
+  confetti(60);
   S.letters[S.door]=d.letter; S.door++; S.step=0; save();
   view="map"; render(); window.scrollTo(0,0);
   toast(`🔓 Door ${S.door} is open! You found the letter “${d.letter}”.`,4000);
@@ -490,7 +644,8 @@ function stepDone(){
 function openLock(){
   if(document.getElementById("lockLeft")) return;
   const o=document.createElement("div"); o.className="lock"; o.id="lockOv";
-  o.innerHTML=`<div class="in"><div class="flicker">${ghostSVG(90)}</div><div style="font-weight:800;font-size:20px">The lights are out!</div><div style="color:var(--muted)">Check your answers in the book while you wait.</div><div class="big" id="lockLeft">15 s</div></div>`;
+  const scary=S.scares&&!RM; if(scary){sfx("boo"); const w=document.querySelector(".wrap"); w.classList.remove("shake"); void w.offsetWidth; w.classList.add("shake");}
+  o.innerHTML=`<div class="in"><div class="${scary?"boo":"flicker"}">${scary?ART.ghost.replace('width="140" height="150"','width="200" height="214"'):ghostSVG(90)}</div>${scary?`<div class="boo-t">BOO!</div>`:""}<div style="font-weight:800;font-size:20px">Wrong answer – the lights are out!</div><div style="color:var(--muted)">Check your answers in the book while you wait.</div><div class="big" id="lockLeft">15 s</div></div>`;
   document.body.appendChild(o);
 }
 function closeLock(){const o=document.getElementById("lockOv"); if(o) o.remove();}
@@ -510,7 +665,7 @@ function renderFinal(){
   document.getElementById("check").onclick=()=>{
     if(S.lockUntil>Date.now()) return;
     const v=norm(inp.value); if(!v){fb("info","Type the code word first."); return;}
-    if(DATA.final.h.includes(H("final",0,0,v))){S.finished=true; S.finishRemaining=S.remaining; save(); view="cert"; render(); window.scrollTo(0,0); return;}
+    if(DATA.final.h.includes(H("final",0,0,v))){S.finished=true; S.finishRemaining=S.remaining; save(); sfx("win"); confetti(120); if(S.scares&&!RM){setTimeout(()=>{sfx("boo"); toast("👻 Noooo! They escaped! … See you next Halloween!",5000);},900);} view="cert"; render(); window.scrollTo(0,0); return;}
     S.remaining-=PENALTY; S.lockUntil=Date.now()+LOCK_MS; save(); fb("bad","That's not the code word. −30 seconds!"); openLock();
   };
   inp.onkeydown=e=>{if(e.key==="Enter") document.getElementById("check").click();};
@@ -569,7 +724,7 @@ function openTeacher(){
 }
 
 /* ---------- boot ---------- */
-if(S.started&&!S.finished) view="map";
+if(S.started&&!S.finished){view="map"; scheduleScare(false);}
 render();
 </script>
 </body>

@@ -13,6 +13,14 @@ Red Line 4 (Bayern), Unit 1, Text 2 „My roller coaster year“, SB S. 29/30. K
 - Vorschlag Doppelstunde: Warm-up Round robin (7 min, PPT Folie 3) → Escape Game (ca. 60–65 min) → Sicherung: Urkunden zeigen, Reflexionsfrage vorlesen, SB ex. 6 als Wahlaufgabe/HA (ca. 15 min).
 - Differenzierung: Teams mischen; schwächere Teams bekommen im Lehrermodus ggf. eine Tür geöffnet („Open current door“).
 
+## Achterbahn und Grusel-Effekte
+
+- **Karte:** Eine Achterbahn zeigt den Fortschritt. Nach jeder geöffneten Tür fährt der Wagen zur nächsten Station; bergab reißen die Fahrgäste die Arme hoch („AAAAH!“). Erledigte Stationen zeigen den gefundenen Buchstaben.
+- **Überraschungen:** Etwa alle 1–2 Minuten taucht unerwartet eine Figur auf (Fledermaus, Gespenst, Spinne, Skeletthand, Kürbis, leuchtende Augen, Klopfen mit wackelndem Bildschirm) – mit witzigen Sprüchen aus Tims Text („Bats only come out at night!“, „Need a hand? That's an idiom!“). Antippen lässt die Figur fliehen.
+- **Falsche Antwort:** Ein Gespenst springt mit „BOO!“ ins Bild, dann 15 s Sperre.
+- **Schalter:** „👻 Scares“ (Startseite und oben in der Leiste) schaltet alle Schreck-Effekte aus – z. B. für ängstliche SuS. „🔇 Sound“ ist anfangs **aus**, damit nicht alle iPads gleichzeitig kreischen; bei Bedarf pro Team einschalten (Kopfhörer!).
+- Bei der iPad-Einstellung „Bewegung reduzieren“ laufen keine Animationen.
+
 ## Codewort
 
 Die Buchstaben kommen in der Reihenfolge **R – E – V – O – F – R – E**. Die SuS ordnen sie zum Codewort **FOREVER** (letztes Wort des Textes, Z. 52).
