@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Escape from the Ghost Train</title>
+<style>
+/* Layout: a night-time amusement park. Neon signs carry the headings, light-bulb borders frame the doors, a roller coaster track links them on the map. */
+:root{
+  --night:#150c2c; --night2:#22123f; --panel:#2b1854; --panel2:#3a2370;
+  --ink:#f6f1ff; --muted:#c2b5e6; --card:#fbf8ff; --card-ink:#1d1338; --card-muted:#5d5480; --hair:#ddd3f3;
+  --pink:#ff4fa3; --cyan:#36e3d4; --yellow:#ffd23f; --orange:#ff9f43; --violet:#8b6cff;
+  --good:#22a55b; --good-bg:#e2f7ea; --bad:#d93a3a; --bad-bg:#fde6e6;
+  --f-head:"Avenir Next","Futura","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --f-body:"Avenir Next","Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(1200px 600px at 50% -10%,#3b1f73 0%,var(--night) 60%) fixed,var(--night);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-bottom:max(20px,env(safe-area-inset-bottom,0px));
+  -webkit-text-size-adjust:100%;overflow-x:hidden}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto}
+[hidden]{display:none!important}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(8px + env(safe-area-inset-top,0px)) 0 8px;background:linear-gradient(var(--night) 70%,transparent)}
+.brand{font-family:var(--f-head);font-weight:800;letter-spacing:.04em;font-size:15px;color:var(--yellow);text-transform:uppercase;flex:1;min-width:150px}
+.pill{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid #4a3290;border-radius:999px;padding:6px 12px;font-weight:700;font-size:15px;white-space:nowrap}
+.pill .k{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+#clock{font-variant-numeric:tabular-nums;font-size:18px;color:var(--cyan)}
+#clock.low{color:var(--orange)} #clock.over{color:var(--bad)}
+.inv{display:flex;gap:4px}
+.inv span{width:26px;height:30px;border-radius:6px;display:grid;place-items:center;font-family:var(--f-head);font-weight:800;background:#1b1038;border:1px dashed #5b45a3;color:#6c5aa8;font-size:16px}
+.inv span.got{background:var(--yellow);color:#3a2a00;border:0;box-shadow:0 0 10px rgba(255,210,63,.6)}
+
+/* neon headings */
+.neon{font-family:var(--f-head);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#fff;text-shadow:0 0 6px var(--pink),0 0 18px var(--pink);margin:0;line-height:1.1;text-wrap:balance}
+.neon.cyan{text-shadow:0 0 6px var(--cyan),0 0 18px var(--cyan)}
+
+/* start */
+.hero{background:var(--night2);border-radius:22px;overflow:hidden;border:1px solid #4a3290;margin-top:8px}
+.hero svg{display:block;width:100%;height:auto}
+.hero .in{padding:20px 22px 24px;display:grid;gap:14px}
+.story{font-size:17px;color:var(--ink)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.rule{background:var(--panel);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.rule b{display:block;color:var(--yellow)}
+.rule .e{font-size:26px;line-height:1}
+.field{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field input{flex:1;min-width:200px;font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:2px solid #5b45a3;background:#1b1038;color:var(--ink)}
+.btn{min-height:48px;padding:10px 20px;border-radius:14px;border:0;font-weight:800;font-size:17px;background:var(--pink);color:#fff;box-shadow:0 4px 0 #b02a6e}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #b02a6e}
+.btn.sec{background:var(--panel2);box-shadow:0 4px 0 #22124a;color:var(--ink)}
+.btn.cy{background:var(--cyan);color:#0b2b2a;box-shadow:0 4px 0 #1a9a90}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* map */
+.mapbox{margin-top:10px;background:var(--night2);border:1px solid #4a3290;border-radius:22px;padding:16px;position:relative;overflow:hidden}
+.mapbox h2{margin-bottom:4px}
+.mapbox p{margin:0 0 12px;color:var(--muted)}
+.track{position:absolute;inset:auto 0 0 0;height:120px;opacity:.35;pointer-events:none}
+.doors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;position:relative}
+@media (max-width:820px){.doors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.door{position:relative;min-height:150px;border-radius:18px;padding:14px 12px 12px;background:var(--panel);border:2px solid #4a3290;color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:4px}
+.door .no{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.door .ic{font-size:34px;line-height:1.1}
+.door .t{font-family:var(--f-head);font-weight:800;font-size:17px;line-height:1.15}
+.door .s{font-size:13px;color:var(--muted)}
+.door .st{margin-top:auto;font-size:13px;font-weight:800}
+.door.open{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,210,63,.25),0 0 22px rgba(255,79,163,.35);animation:pulse 2.4s ease-in-out infinite}
+.door.open .st{color:var(--yellow)}
+.door.done{background:#1f3b34;border-color:#2f8f73}
+.door.done .st{color:var(--cyan)}
+.door.locked{opacity:.55}
+.door.locked .ic{filter:grayscale(1)}
+.door .lt{position:absolute;right:10px;top:10px;width:34px;height:38px;border-radius:8px;background:var(--yellow);color:#3a2a00;font-family:var(--f-head);font-weight:900;font-size:22px;display:grid;place-items:center}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(255,210,63,.15),0 0 30px rgba(255,79,163,.55)}}
+@media (prefers-reduced-motion:reduce){.door.open{animation:none}}
+
+/* door screen */
+.room{margin-top:10px;background:var(--night2);border:1px solid #4a3290;border-radius:22px;overflow:hidden}
+.room-head{display:flex;gap:14px;align-items:center;padding:16px 18px;background:linear-gradient(90deg,#3a1f6e,#22123f)}
+.room-head .ic{font-size:44px;line-height:1}
+.room-head .no{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--yellow);text-transform:uppercase}
+.room-head h2{font-size:26px}
+.room-head .sub{color:var(--muted);font-size:15px}
+.room-story{padding:12px 18px;font-style:italic;color:var(--muted);border-bottom:1px solid #3d2a75;display:flex;gap:10px;align-items:center}
+.room-story svg{flex:none}
+.steps{display:flex;gap:6px;padding:12px 18px 0}
+.steps i{height:6px;flex:1;border-radius:4px;background:#3d2a75}
+.steps i.on{background:var(--pink)} .steps i.ok{background:var(--cyan)}
+.task{margin:12px 12px 0;background:var(--card);color:var(--card-ink);border-radius:18px;padding:16px 16px 18px;position:relative}
+.task .intro{font-weight:700;margin:0 0 12px}
+.task .intro small{display:block;font-weight:400;color:var(--card-muted);margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;padding:14px 12px 16px;align-items:center}
+.actions .sp{flex:1}
+.fb{margin:10px 12px 0;padding:10px 14px;border-radius:12px;font-weight:700}
+.fb.bad{background:var(--bad-bg);color:#8f1d1d}
+.fb.good{background:var(--good-bg);color:#14663a}
+.fb.info{background:#efe9ff;color:#3a2a7a}
+.hintbox{margin:10px 12px 0;padding:10px 14px;border-radius:12px;background:#fff4cf;color:#5a4300;font-size:15px}
+.hintbox b{color:#8a5a00}
+
+/* task widgets */
+.q{padding:10px 0;border-bottom:1px solid var(--hair)}
+.q:last-child{border-bottom:0}
+.q .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:8px}
+.opts.row{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opt{min-height:46px;text-align:left;padding:10px 14px;border-radius:12px;border:2px solid var(--hair);background:#fff;color:var(--card-ink);font-size:16px}
+.opt.sel{border-color:var(--violet);background:#efe9ff;font-weight:700}
+.rwn{display:grid;grid-template-columns:28px 1fr auto;gap:8px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--hair)}
+.rwn .n{font-weight:800;color:var(--card-muted)}
+.rwn .b3{display:flex;gap:6px}
+.rwn .b3 button{min-width:56px;min-height:44px;border-radius:10px;border:2px solid var(--hair);background:#fff;font-weight:800;font-size:14px;color:var(--card-ink)}
+.rwn .b3 button.sel[data-v="0"]{background:#dff5ea;border-color:var(--good);color:#14663a}
+.rwn .b3 button.sel[data-v="1"]{background:#fde6e6;border-color:var(--bad);color:#8f1d1d}
+.rwn .b3 button.sel[data-v="2"]{background:#fff1d6;border-color:var(--orange);color:#7a4a00}
+@media (max-width:640px){.rwn{grid-template-columns:24px 1fr}.rwn .b3{grid-column:2}}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-bottom:6px;color:var(--card-muted)}
+.legend b{color:var(--card-ink)}
+.tr{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,260px);gap:6px 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--hair)}
+.tr .n{font-weight:800;color:var(--card-muted)}
+.tr .ln{font-size:13px;color:#7a4a00;font-weight:700}
+.tr input,.chat input,.final input{font:inherit;font-size:17px;padding:10px 12px;border-radius:10px;border:2px solid var(--hair);width:100%;min-height:46px;background:#fff;color:var(--card-ink)}
+.tr input::placeholder{color:#a79fc4;letter-spacing:.12em}
+@media (max-width:640px){.tr{grid-template-columns:24px 1fr}.tr input{grid-column:2}}
+textarea{font:inherit;font-size:17px;width:100%;min-height:96px;padding:10px 12px;border-radius:12px;border:2px solid var(--hair);resize:vertical;color:var(--card-ink);background:#fff}
+
+/* chips + slots */
+.pool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border-radius:14px;background:#f1ecff;border:2px dashed #cfc3f2;min-height:62px;margin-top:12px}
+.pool.stick{position:sticky;bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:5;max-height:42vh;overflow:auto;background:#f1ecffee;box-shadow:0 -6px 16px rgba(29,19,56,.18)}
+.pool .lbl{width:100%;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--card-muted);text-transform:uppercase}
+.chip{touch-action:none;user-select:none;-webkit-user-select:none;min-height:44px;padding:9px 14px;border-radius:12px;background:#fff;border:2px solid #b8a8ee;color:var(--card-ink);font-weight:700;font-size:15px;box-shadow:0 2px 0 #cfc3f2;text-align:left}
+.chip.sel{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,79,163,.3)}
+.chip.ex{background:#eee;border-color:#ccc;color:#777;box-shadow:none}
+.slotrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--hair)}
+.slotrow .rl{font-weight:700}
+.slotrow.ex .rl{color:#888}
+.slot{min-height:50px;border-radius:12px;border:2px dashed #b8a8ee;background:#faf8ff;display:flex;align-items:center;padding:3px}
+.slot.hot{border-color:var(--pink);background:#fff0f7}
+.slot .chip{width:100%}
+.slot .ph{color:#a79fc4;font-size:14px;padding:0 10px}
+@media (max-width:640px){.slotrow{grid-template-columns:1fr}}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.zone{border-radius:16px;padding:10px;min-height:190px;display:flex;flex-direction:column;gap:8px;border:2px dashed}
+.zone h4{margin:0;font-family:var(--f-head);font-size:15px;letter-spacing:.04em}
+.zone.up{background:#e6f8ef;border-color:#5ccf91} .zone.up h4{color:#14663a}
+.zone.down{background:#fde9ec;border-color:#f08a96} .zone.down h4{color:#8f1d1d}
+.zone.hot{outline:3px solid var(--pink)}
+@media (max-width:640px){.zones{grid-template-columns:1fr}}
+.ghost-drag{position:fixed;z-index:100;pointer-events:none;opacity:.92;transform:translate(-50%,-50%) rotate(-2deg);box-shadow:0 10px 24px rgba(0,0,0,.35)}
+
+/* chat */
+.chat{background:#e9f0e6;border-radius:16px;padding:12px;display:grid;gap:10px}
+.msg{max-width:92%;padding:8px 12px 10px;border-radius:14px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.08);line-height:1.6}
+.msg.me{justify-self:end;background:#d9f2c8}
+.msg .who{display:block;font-size:12px;font-weight:800;color:#b0491c}
+.msg.me .who{color:#2f7d3a}
+.msg input{display:inline-block;width:min(290px,100%);min-height:40px;padding:6px 10px;margin:2px 0;font-size:16px;vertical-align:middle}
+.box{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.box span{background:#efe9ff;color:#3a2a7a;border-radius:10px;padding:4px 10px;font-size:14px;font-weight:700}
+
+/* lock overlay */
+.lock{position:fixed;inset:0;z-index:50;background:rgba(10,4,24,.82);display:grid;place-items:center;padding:20px;text-align:center}
+.lock .in{max-width:420px;display:grid;gap:10px;justify-items:center}
+.lock .big{font-size:56px;font-weight:900;font-family:var(--f-head);color:var(--yellow);font-variant-numeric:tabular-nums}
+.flicker{animation:flick 1.2s infinite}
+@keyframes flick{0%,100%{opacity:1}45%{opacity:.4}50%{opacity:1}55%{opacity:.2}60%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.flicker{animation:none}}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--yellow);color:#3a2a00;font-weight:800;padding:12px 18px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.35);max-width:90vw;text-align:center}
+
+/* final + cert */
+.final .letters{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+.final .letters span{width:46px;height:54px;border-radius:10px;background:var(--yellow);color:#3a2a00;display:grid;place-items:center;font-family:var(--f-head);font-weight:900;font-size:28px}
+.cert{margin-top:10px;background:#fffaf0;color:#2a1d10;border-radius:22px;padding:26px 22px;text-align:center;border:6px double #d4a72c;position:relative;overflow:hidden}
+.cert h2{font-family:var(--f-head);font-size:34px;margin:6px 0;color:#7a1f5a;text-wrap:balance}
+.cert .team{font-size:30px;font-weight:900;color:#2a1d10;margin:6px 0}
+.cert .stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+.cert .stats div{background:#fff;border:2px solid #ecd9a6;border-radius:14px;padding:8px 14px;min-width:130px}
+.cert .stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.cert textarea{max-width:640px;margin:8px auto 0;display:block;text-align:left}
+.cert .small{font-size:14px;color:#6b5a3a}
+
+/* teacher */
+#tBtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;min-height:44px;border-radius:12px;border:0;background:#0d6b5e;color:#fff;font-weight:800;padding:8px 14px}
+.tpanel{position:fixed;inset:0;z-index:70;background:rgba(10,4,24,.85);display:grid;place-items:center;padding:16px}
+.tpanel .in{background:#fff;color:#1d1338;border-radius:18px;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:18px}
+.tpanel h3{margin:0 0 8px}
+.tpanel .sol{font-size:14px;background:#f4f1fb;border-radius:10px;padding:8px 12px;margin:6px 0}
+.tpanel .sol b{display:block}
+.tpanel .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar" id="bar" hidden>
+    <div class="brand">👻 Escape from the Ghost Train</div>
+    <div class="pill"><span class="k">Park closes</span><span id="clock">60:00</span></div>
+    <div class="pill"><span class="k">Hints</span><span id="hints">💡💡💡</span></div>
+    <div class="pill inv" id="inv"></div>
+  </div>
+  <main id="app"></main>
+</div>
+<button id="tBtn" hidden>Teacher</button>
+
+<script>
+"use strict";
+const DATA = {"salt": "gt8-coaster", "doors": [{"id": "d1", "title": "The Entrance", "sub": "Look before you read", "letter": "R", "icon": "🎟️", "story": "The ghost laughs: “Don't read the text yet! First look at the photo on page 29 and the red tasks.”", "steps": [{"type": "mc", "intro": "Look at the photo on p. 29 and the red task 2. Don't read the text yet!", "hint": "Read the small sentence under the photo and the red task 2 on p. 29.", "items": [{"q": "Where was the photo taken?", "opts": ["at a zoo", "in an amusement park", "at a school party", "at a football stadium"], "h": "c78db6d631564f26bbb76cdb"}, {"q": "Who is Tim in the photo?", "opts": ["the man with the camera", "the penguin on the right", "the penguin on the left", "a boy in the crowd"], "h": "728337d2194be941b7bc3cf1"}, {"q": "What kind of text is Tim's text?", "opts": ["a diary entry", "a report for a website for students", "a letter to his parents", "a newspaper article"], "h": "8eda51d48d845488f7805857"}]}, {"type": "guess", "intro": "Look at the title: “My roller coaster year”. Why was Tim's year like a roller coaster? Type your team's guess. There is no right or wrong – you will need your guess again at the end!", "hint": "Think about a real roller coaster. What happens on the ride?"}]}, {"id": "d2", "title": "The Notice Board", "sub": "What is the text about?", "letter": "E", "icon": "📌", "story": "A dusty notice board lights up. “Read Tim's report now – all of it!”", "steps": [{"type": "mc", "intro": "Now read the whole text on p. 29 together (about 8 minutes). One person can read aloud, or everybody reads quietly. Then answer the question.", "hint": "Who reads this website? Students who want to spend time abroad. What do they want to know about a job?", "items": [{"q": "Which sentence sums up the text best?", "opts": ["It's about people who work in an amusement park.", "It's about the good and the bad sides of working in an amusement park.", "It's about a boy who had lots of different jobs in the USA.", "It's about fun rides you can try in an amusement park."], "h": "6dd66e70dcd59a2e8fc69bb0"}]}, {"type": "slots", "intro": "Match the headings to the paragraphs. There are two headings you don't need.", "hint": "Read the first two lines of each paragraph again. They usually tell you the topic.", "chips": [{"id": "2grfh", "t": "Good money for hard work"}, {"id": "ucnw6", "t": "An early start"}, {"id": "wkct8", "t": "Customers can be difficult"}, {"id": "npqab", "t": "Every day is different"}, {"id": "q4qy4", "t": "Back home in Germany"}, {"id": "8wuq5", "t": "What really stays"}, {"id": "4ncsm", "t": "A very scary ride"}, {"id": "d6rxh", "t": "Life in a costume"}], "rows": ["Paragraph 2 (ll. 5–11)", "Paragraph 3 (ll. 12–22)", "Paragraph 4 (ll. 23–28)", "Paragraph 5 (ll. 29–37)", "Paragraph 6 (ll. 38–46)", "Paragraph 7 (ll. 47–52)"], "example": {"row": "Paragraph 1 (ll. 1–4)", "chip": "A dream job?"}, "h": ["34da38dd48c9749446308d86", "51b732d2ad3aedd3c99a08dc", "e4354b5d5cef48b9aee1a28f", "4d83f7aaf1b27791e71ff9a6", "290c61189f773186d1cdbee5", "6065296df93a34b010f2ec5a"]}]}, {"id": "d3", "title": "Truth Detector", "sub": "Right, wrong or not in the text?", "letter": "V", "icon": "🔎", "story": "A machine with three big buttons blocks the tunnel. It only lets in people who read carefully.", "steps": [{"type": "rwn", "intro": "Right = the text says this. Wrong = the text says something different. Not in the text = the text gives no information.", "hint": "Statements 1–3: lines 1–11 · statements 4–7: lines 12–37 · statements 8–10: lines 38–52.", "items": [{"q": "Before he started, Tim thought the job would be easy.", "h": "057a113b515f252e1f44dd88"}, {"q": "Tim had to be at work at 6 a.m.", "h": "840980b5bb3e102f6b38ec5d"}, {"q": "The first customers arrived one hour after Tim started work.", "h": "acbe0eb56961cd1a8b644412"}, {"q": "All the customers were friendly.", "h": "c597c7d6ca7ca7c5053f412f"}, {"q": "On some days Tim worked in the park's restaurant.", "h": "c4355369255413f40c8a8487"}, {"q": "Tim often wore a costume because he's good at talking to people.", "h": "c6df9b2a08e3bb98ea8242b6"}, {"q": "A child thought Tim's bat costume was too scary.", "h": "bf44e2de87f4100b353bc121"}, {"q": "The man on the ghost train believed Tim's story at first.", "h": "4d57aa973ad478c9a798e8d8"}, {"q": "Tim's boss at the ghost train was from Germany.", "h": "6806fefb3df87ab3d63d1526"}, {"q": "Tim wants to work at the park again next summer.", "h": "3758e0741839de715ab43055"}]}]}, {"id": "d4", "title": "Costume Room", "sub": "Word detective", "letter": "O", "icon": "🎭", "story": "Costumes everywhere – a bat, a penguin, a ghost. The words on the labels are missing!", "steps": [{"type": "type", "intro": "Find the words in the text. The lines tell you where to look. The first letter is given.", "hint": "Read the whole sentence and the sentences before and after it. Count the letters!", "items": [{"q": "a year's break, often between school and university", "ln": "ll. 1–4", "pat": "g__ ____", "h": ["b08765f9c6ff6565d6190b8a"]}, {"q": "people who work for a company", "ln": "ll. 5–6", "pat": "e________", "h": ["a53ae2f68c23a9de136bfb99", "a13c8d7644946c92b8e7ddf6"]}, {"q": "special clothes that make you look like somebody else", "ln": "ll. 7–9", "pat": "c______", "h": ["f97a733b3bf3be593364941f", "1de838d63009cb903cb63c7b"]}, {"q": "something that is interesting but difficult", "ln": "ll. 12–18", "pat": "c________", "h": ["651f4d93f1c34213e19191e6"]}, {"q": "angry because you can't do what you want", "ln": "ll. 18–20", "pat": "f_________", "h": ["be324fa6a766e68222be4c9e"]}, {"q": "a shop where you can buy presents", "ln": "ll. 23–28", "pat": "g___ ____", "h": ["95e0a6beb1cda147ac90eac1", "da2fe55bc80c8a282bdcf332", "4167fb4f7519886b303f43c0"]}, {"q": "a ride in the dark that wants to scare you", "ln": "ll. 38–39", "pat": "g____ _____", "h": ["a029fd9803fc64dc07d4e794"]}, {"q": "not polite", "ln": "ll. 47–49", "pat": "r___", "h": ["bb2d5b2c11c33e42284096ce"]}]}]}, {"id": "d5", "title": "Mirror Maze", "sub": "Body idioms", "letter": "F", "icon": "🪞", "story": "Hundreds of mirrors. Every mirror shows a strange picture: feet, eyes, hands … What do they mean?", "steps": [{"type": "mc", "intro": "Tim's text has two expressions with parts of the body. What do they mean?", "hint": "Look at lines 34–35 and 44–45. What happens in the story at that moment?", "items": [{"q": "ll. 34–35: In a costume you have to be able to “think on your feet”. This means …", "opts": ["to stand up when you think.", "to think and react quickly.", "to walk a lot in your costume."], "h": "0420ed701268c27c3bdca6df"}, {"q": "l. 45: The man “almost jumped out of his skin”. This means …", "opts": ["he got a big shock.", "he jumped off the train.", "his skin was red from the sun."], "h": "0d370469eddf56dd1ea6fc25"}]}, {"type": "slots", "intro": "More body idioms: match each idiom to its meaning. There is one meaning you don't need.", "hint": "Imagine the picture first: what would it look like if you really did it? Then think: when do people feel like that?", "chips": [{"id": "te3k3", "t": "to watch sth. carefully"}, {"id": "n6eje", "t": "to know sth. perfectly"}, {"id": "kvzxs", "t": "to suddenly feel afraid to do sth."}, {"id": "qrk8w", "t": "to feel nervous"}, {"id": "yem26", "t": "to be very tired"}, {"id": "pfqxx", "t": "to say sth. embarrassing by mistake"}, {"id": "zm4cu", "t": "to make a joke and tease sb."}, {"id": "5q94s", "t": "to hope for good luck"}, {"id": "7d297", "t": "to tell other people's secrets"}, {"id": "p5w63", "t": "to help sb."}], "rows": ["🤞 to keep your fingers crossed", "👀 to keep an eye on sth.", "🥶 to get cold feet", "🤝 to lend sb. a hand", "🗣️ to have a big mouth", "❤️ to learn sth. by heart", "😜 to pull sb.'s leg", "👣 to put your foot in it", "🦋 to have butterflies in your stomach"], "example": {"row": "🦶 to think on your feet", "chip": "to react quickly and well"}, "h": ["a836ec71040992bd3fd6e41b", "381c20bd77cda1385889d378", "01bf45329434eab4ca102489", "21f03c6da0e36e4d7d882ac6", "363d2e420580f98924cfe654", "781b27c950f2503b3e6c6c8f", "0d0ce56d07cfb66b98968182", "e6a6c55c3329c5fac46632ca", "7b40d778a8eae53f10126e58"]}]}, {"id": "d6", "title": "Staff Room", "sub": "Tim's chat", "letter": "R", "icon": "💬", "story": "Tim's old phone is lying on a table. The screen shows a chat – but some words are missing.", "steps": [{"type": "chat", "intro": "This is an imagined chat between Tim, his colleague Jenny and their boss. Complete it with the idioms from the box. Use the right form.", "hint": "Change “your” and “sb.” to my, his or me. Is the sentence about now, the future or the past?", "box": ["to have butterflies in your stomach", "to keep your fingers crossed", "to keep an eye on sth.", "to think on your feet", "to put your foot in it", "to jump out of your skin", "to lend sb. a hand", "to pull sb.'s leg", "to get cold feet"], "items": [{"who": "Tim", "pre": "Tomorrow is the Halloween parade and I'm the bat again. I always", "post": "before a big show!", "h": ["f81681d53055301c4495980c", "7ed1fd1f515331cdfe0dd82b", "1fe7a8a57a2554a230214c12"]}, {"who": "Jenny", "pre": "You'll be great. I'll", "post": "for you!", "h": ["7889eee481f5980af3a2fce0"]}, {"who": "Boss", "pre": "Tim, please", "post": "the kids near the ice cream machine. It isn't working again!", "h": ["c2dcd3154b1fc8c4ac21d072"]}, {"who": "Tim", "pre": "Yesterday a girl asked me why a penguin works in California. I had to", "post": "!", "h": ["36247e9a874978cb8c842cb2"]}, {"who": "Jenny", "pre": "Did you hear about Mike? He told a man his son looked like a monkey. He really", "post": ".", "h": ["0f99b02499fd3412600b5a76"]}, {"who": "Tim", "pre": "When I spoke German on the ghost train, a man almost", "post": "!", "h": ["d74204da1ac5fb88716b5c01"]}, {"who": "Jenny", "pre": "Can you", "post": "in the gift shop after lunch? It's really busy.", "h": ["682690cc78a4ac3bf1933835"]}]}]}, {"id": "d7", "title": "The Big Roller Coaster", "sub": "Ups and downs", "letter": "E", "icon": "🎢", "story": "Your car is on the biggest roller coaster in the park. It only moves if you know Tim's ups and downs!", "steps": [{"type": "zones", "intro": "Good moments go UP, bad moments go DOWN. Put every card in the right place.", "hint": "UP = moments Tim enjoyed. Look at lines 1–4, 23–28, 38–40 and 47–52 again.", "chips": [{"id": "gjsae", "t": "He makes children smile."}, {"id": "b9bt3", "t": "The costumes are heavy and hot."}, {"id": "b3xkd", "t": "Some people get frustrated when they wait in line."}, {"id": "nhca2", "t": "The ice cream machine stops working."}, {"id": "966b2", "t": "He has to get up at 6 a.m. every day."}, {"id": "aefzr", "t": "He scares people on the ghost train."}, {"id": "qek8a", "t": "Tim finds out he's going to work in L.A."}, {"id": "a9xt7", "t": "Every day he does a different job."}], "zones": ["▲ UP – good moments", "▼ DOWN – bad moments"], "h": {"qek8a": "8f44b7e9821ecdf4f0428487", "966b2": "b7ecef9e9090e51f677e3e78", "b3xkd": "72de66e4facd7dc87640c8e8", "a9xt7": "f4a012f674c68f9f5fe495d4", "b9bt3": "9b103eb84e5e6fe656f55e9c", "aefzr": "260fcb2b67e284a7a3e3a245", "nhca2": "c107166503c6a40b0365935b", "gjsae": "ac7faad8734ef7590e2e4fb6"}}, {"type": "mc", "intro": "Now explain the title.", "hint": "Think about the ride: up, down, up, down … Which answer is about the whole year?", "showGuess": true, "items": [{"q": "Why is Tim's report called “My roller coaster year”?", "opts": ["He worked on a roller coaster every day.", "His year was full of ups and downs – good and bad moments.", "He was scared all year.", "His park had the biggest roller coaster in L.A."], "h": "81ca0703c711339d6119525c"}]}]}], "final": {"title": "The Exit Gate", "intro": "Put your seven letters in the right order. Tip: it's Tim's very last word in his report (line 52).", "hint": "Read line 52 – the last word of the text.", "h": ["766ce188752ab8b137e91014"]}, "pinH": "51afec8fe5280d7720fb0956", "sol": "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"};
+const TOTAL_MS = 60*60*1000, PENALTY = 30000, LOCK_MS = 15000, HINT_COST = 60000, MAX_HINTS = 3;
+const KEY = "ghost-train-e8-v1";
+
+/* ---------- SHA-256 (sync, tiny) ---------- */
+function sha256(str){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes=new TextEncoder().encode(str); const l=bytes.length;
+  const n=((l+9+63)>>6)<<6; const m=new Uint8Array(n); m.set(bytes); m[l]=0x80;
+  const bl=l*8; const dv=new DataView(m.buffer); dv.setUint32(n-4,bl>>>0); dv.setUint32(n-8,Math.floor(bl/4294967296));
+  let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const w=new Uint32Array(64); const r=(x,y)=>(x>>>y)|(x<<(32-y));
+  for(let o=0;o<n;o+=64){
+    for(let i=0;i<16;i++) w[i]=dv.getUint32(o+i*4);
+    for(let i=16;i<64;i++){const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3), s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10); w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;}
+    let [a,b,c,d,e,f,g,hh]=h;
+    for(let i=0;i<64;i++){const S1=r(e,6)^r(e,11)^r(e,25), ch=(e&f)^(~e&g), t1=(hh+S1+ch+K[i]+w[i])>>>0, S0=r(a,2)^r(a,13)^r(a,22), mj=(a&b)^(a&c)^(b&c), t2=(S0+mj)>>>0;
+      hh=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;}
+    h=[(h[0]+a)>>>0,(h[1]+b)>>>0,(h[2]+c)>>>0,(h[3]+d)>>>0,(h[4]+e)>>>0,(h[5]+f)>>>0,(h[6]+g)>>>0,(h[7]+hh)>>>0];
+  }
+  return h.map(x=>x.toString(16).padStart(8,"0")).join("");
+}
+const H = (...p)=>sha256([DATA.salt,...p].join("|")).slice(0,24);
+function norm(s,strip){
+  s=String(s||"").toLowerCase().replace(/[’‘`´]/g,"'").trim().replace(/\s+/g," ").replace(/[.!?,;:]+$/,"").trim();
+  if(strip) s=s.replace(/^(a|an|the|to) /,"");
+  return s;
+}
+
+/* ---------- state ---------- */
+function fresh(){return {v:1,team:"",started:false,remaining:TOTAL_MS,door:0,step:0,letters:[],hintsLeft:MAX_HINTS,hintUsed:{},guess:"",drafts:{},lockUntil:0,finished:false,finishRemaining:null,reflection:"",overtimeShown:false,stepsDone:{}};}
+let S = fresh();
+try{const raw=localStorage.getItem(KEY); if(raw){const o=JSON.parse(raw); if(o&&o.v===1) S=Object.assign(fresh(),o);}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let view="start", sel=null, toastT=null;
+
+/* ---------- timer ---------- */
+let last=performance.now();
+function fmt(ms){const neg=ms<0; ms=Math.abs(ms); const t=Math.floor(ms/1000); return (neg?"+":"")+String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");}
+function tick(){
+  const now=performance.now(), dt=now-last; last=now;
+  if(S.started&&!S.finished){S.remaining-=dt; if(S.remaining<=0&&!S.overtimeShown){S.overtimeShown=true; toast("⏰ Time's up – the night guard gives you extra time. Keep going in overtime!",6000);} }
+  const c=document.getElementById("clock");
+  if(c){const ms=S.finished?S.finishRemaining:S.remaining; c.textContent=fmt(ms); c.className=ms<0?"over":(ms<5*60000?"low":"");}
+  const L=document.getElementById("lockLeft");
+  if(L){const left=S.lockUntil-Date.now(); if(left<=0){closeLock();} else L.textContent=Math.ceil(left/1000)+" s";}
+}
+setInterval(tick,250); setInterval(save,3000);
+document.addEventListener("visibilitychange",()=>{last=performance.now(); save();});
+
+function toast(t,ms){let el=document.querySelector(".toast"); if(!el){el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); document.body.appendChild(el);} el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{el.hidden=true;},ms||3000);}
+
+function renderBar(){
+  const bar=document.getElementById("bar"); bar.hidden=!S.started;
+  document.getElementById("hints").textContent=S.hintsLeft>0?"💡".repeat(S.hintsLeft):"–";
+  document.getElementById("inv").innerHTML=DATA.doors.map((d,i)=>`<span class="${S.letters[i]?"got":""}" aria-label="letter ${i+1}">${S.letters[i]||"?"}</span>`).join("");
+}
+
+/* ---------- art ---------- */
+function ghostSVG(sz){return `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 30a20 20 0 0 1 40 0v26l-6-5-6 5-6-5-6 5-6-5-4 5z" fill="#f6f1ff"/><ellipse cx="25" cy="29" rx="4" ry="5.5" fill="#22123f"/><ellipse cx="39" cy="29" rx="4" ry="5.5" fill="#22123f"/><ellipse cx="32" cy="40" rx="5" ry="3.5" fill="#22123f"/><circle cx="26" cy="27" r="1.4" fill="#fff"/><circle cx="40" cy="27" r="1.4" fill="#fff"/></svg>`;}
+function heroSVG(){
+  let bulbs=""; for(let x=20;x<960;x+=34){bulbs+=`<circle cx="${x}" cy="${18+6*Math.sin(x/60)}" r="5" fill="${["#ffd23f","#ff4fa3","#36e3d4"][(x/34|0)%3]}"/>`;}
+  let spokes=""; for(let a=0;a<12;a++){const t=a*Math.PI/6; spokes+=`<line x1="760" y1="150" x2="${760+90*Math.cos(t)}" y2="${150+90*Math.sin(t)}" stroke="#8b6cff" stroke-width="2"/><rect x="${760+90*Math.cos(t)-9}" y="${150+90*Math.sin(t)-7}" width="18" height="14" rx="4" fill="${["#ff4fa3","#ffd23f","#36e3d4","#ff9f43"][a%4]}"/>`;}
+  let stars=""; const rs=[13,87,211,302,377,455,523,610,688,850,915,140,260,580]; rs.forEach((x,i)=>stars+=`<circle cx="${x}" cy="${40+(i*37)%90}" r="${1+(i%3)*.6}" fill="#fff" opacity=".7"/>`);
+  return `<svg viewBox="0 0 980 300" role="img" aria-label="An amusement park at night with a ferris wheel, a roller coaster and a ghost train">
+  <rect width="980" height="300" fill="#22123f"/>${stars}
+  <path d="M0 6 Q490 40 980 6" stroke="#6d58b5" stroke-width="2" fill="none"/>${bulbs}
+  <circle cx="900" cy="70" r="26" fill="#fff6cf"/><circle cx="912" cy="62" r="24" fill="#22123f"/>
+  <g>${spokes}<circle cx="760" cy="150" r="90" fill="none" stroke="#8b6cff" stroke-width="5"/><circle cx="760" cy="150" r="12" fill="#ffd23f"/><path d="M760 150 L715 290 M760 150 L805 290" stroke="#6d58b5" stroke-width="8"/></g>
+  <path d="M0 250 C60 250 80 110 150 110 C220 110 230 230 290 230 C350 230 360 140 420 140 C470 140 480 250 540 250" fill="none" stroke="#ff4fa3" stroke-width="7"/>
+  <path d="M150 110 V300 M290 230 V300 M420 140 V300 M70 190 V300" stroke="#5a3ea8" stroke-width="5"/>
+  <g transform="translate(118 84) rotate(8)"><rect width="56" height="22" rx="6" fill="#36e3d4"/><circle cx="14" cy="24" r="5" fill="#111"/><circle cx="42" cy="24" r="5" fill="#111"/><circle cx="16" cy="-4" r="6" fill="#ffcf9e"/><circle cx="38" cy="-4" r="6" fill="#d9a77a"/></g>
+  <g transform="translate(560 160)"><path d="M0 140 V40 L70 0 L140 40 V140Z" fill="#3a2370"/><path d="M40 140 V80 a30 30 0 0 1 60 0 V140Z" fill="#150c2c"/><text x="70" y="34" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="800" font-size="14" fill="#ffd23f">GHOST TRAIN</text></g>
+  <g transform="translate(655 205) scale(0.9)" class="flicker">${ghostSVG(56).replace(/<svg[^>]*>|<\/svg>/g,"")}</g>
+  <rect y="290" width="980" height="10" fill="#150c2c"/>
+  </svg>`;
+}
+
+/* ---------- screens ---------- */
+function render(){
+  renderBar();
+  if(!S.started){view="start";}
+  if(S.finished){view="cert";}
+  if(view==="start") return renderStart();
+  if(view==="map") return renderMap();
+  if(view==="door") return renderDoor();
+  if(view==="final") return renderFinal();
+  if(view==="cert") return renderCert();
+}
+function renderStart(){
+  app.innerHTML=`<section class="hero">${heroSVG()}<div class="in">
+    <h1 class="neon" style="font-size:clamp(28px,5vw,46px)">Escape from the Ghost Train</h1>
+    <p class="story">It's 11 p.m. at an amusement park in L.A. Your class has won a special night ride on the <b>ghost train</b> – the ride where Tim from Germany once worked. Suddenly the lights go out and your car stops in the dark. A voice laughs: <i>“I'm the ghost of the ghost train! You can only get out if you know Tim's story. And the park closes at midnight …”</i></p>
+    <div class="rules">
+      <div class="rule"><span class="e">📖</span><span><b>Open your book</b>Student's Book, page 29. You need it for every door!</span></div>
+      <div class="rule"><span class="e">🚪</span><span><b>7 doors, 7 letters</b>Every door gives you a letter. The letters make the code for the exit.</span></div>
+      <div class="rule"><span class="e">⏱️</span><span><b>60 minutes</b>A wrong answer costs 30 seconds and the lights go out for 15 seconds.</span></div>
+      <div class="rule"><span class="e">💡</span><span><b>3 hints</b>Each hint costs 1 minute. Hints show you where to look.</span></div>
+    </div>
+    <label for="team" style="font-weight:700">Your team name</label>
+    <div class="field"><input id="team" maxlength="30" autocomplete="off" placeholder="e.g. The Brave Bats" value="${esc(S.team)}"><button class="btn" id="go">Start the ride</button></div>
+    <p class="small" style="color:var(--muted);font-size:14px;margin:0">No real names, please – just a fun team name.</p>
+  </div></section>`;
+  const go=document.getElementById("go"), t=document.getElementById("team");
+  go.onclick=()=>{const v=t.value.trim(); if(!v){t.focus(); toast("Please type a team name first."); return;} S.team=v; S.started=true; S.remaining=TOTAL_MS; last=performance.now(); save(); view="map"; render(); window.scrollTo(0,0);};
+  t.onkeydown=e=>{if(e.key==="Enter") go.click();};
+}
+function renderMap(){
+  const cards=DATA.doors.map((d,i)=>{
+    const st=i<S.door?"done":(i===S.door?"open":"locked");
+    return `<button class="door ${st}" data-i="${i}" ${st==="locked"?"disabled":""} aria-label="Door ${i+1}: ${esc(d.title)} – ${st}">
+      ${st==="done"?`<span class="lt">${d.letter}</span>`:""}
+      <span class="no">Door ${i+1}</span><span class="ic">${st==="locked"?"🔒":d.icon}</span>
+      <span class="t">${esc(d.title)}</span><span class="s">${esc(d.sub)}</span>
+      <span class="st">${st==="done"?"✓ open":(st==="open"?"▶ Go in":"locked")}</span></button>`;}).join("");
+  const fin=S.door>=DATA.doors.length;
+  app.innerHTML=`<section class="mapbox">
+    <svg class="track" viewBox="0 0 980 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 C120 100 140 20 240 20 C340 20 360 100 480 100 C600 100 620 20 720 20 C820 20 840 100 980 100" fill="none" stroke="#ff4fa3" stroke-width="6"/></svg>
+    <h2 class="neon cyan" style="font-size:24px">The ghost train tunnel</h2>
+    <p>${fin?"All seven doors are open! Now go to the exit gate.":"Open the doors one after the other. The glowing door is the next one."}</p>
+    <div class="doors">${cards}
+      <button class="door ${fin?"open":"locked"}" id="exitBtn" ${fin?"":"disabled"}><span class="no">Exit</span><span class="ic">${fin?"🚪":"🔒"}</span><span class="t">The Exit Gate</span><span class="s">Type the code word</span><span class="st">${fin?"▶ Escape!":"locked"}</span></button>
+    </div></section>`;
+  app.querySelectorAll(".door[data-i]").forEach(b=>b.onclick=()=>{const i=+b.dataset.i; if(i!==S.door) return; view="door"; render(); window.scrollTo(0,0);});
+  const ex=document.getElementById("exitBtn"); if(fin) ex.onclick=()=>{view="final"; render(); window.scrollTo(0,0);};
+}
+
+function stepKey(){return DATA.doors[S.door].id+"-"+S.step;}
+function draft(){const k=stepKey(); return S.drafts[k]||(S.drafts[k]={});}
+
+function renderDoor(){
+  const d=DATA.doors[S.door]; const st=d.steps[S.step]; const k=stepKey();
+  const dots=d.steps.map((x,i)=>`<i class="${i<S.step?"ok":(i===S.step?"on":"")}"></i>`).join("");
+  app.innerHTML=`<section class="room">
+    <div class="room-head"><span class="ic">${d.icon}</span><div><div class="no">Door ${S.door+1} of 7 · Part ${S.step+1} of ${d.steps.length}</div><h2 class="neon" style="font-size:24px">${esc(d.title)}</h2><div class="sub">${esc(d.sub)}</div></div></div>
+    <div class="room-story">${ghostSVG(34)}<span>${esc(d.story)}</span></div>
+    <div class="steps">${dots}</div>
+    <div class="task" id="task"></div>
+    <div id="hintArea"></div>
+    <div id="fbArea"></div>
+    <div class="actions"><button class="btn sec" id="back">← Map</button><span class="sp"></span><button class="btn sec" id="hintBtn">💡 Hint (−1 min)</button><button class="btn cy" id="check">Check</button></div>
+  </section>`;
+  const task=document.getElementById("task");
+  const R={mc:taskMC,rwn:taskRWN,type:taskType,chat:taskChat,slots:taskSlots,zones:taskZones,guess:taskGuess}[st.type];
+  R(task,st);
+  document.getElementById("back").onclick=()=>{view="map"; render();};
+  document.getElementById("check").onclick=()=>check(st);
+  renderHint(st,k);
+  const hb=document.getElementById("hintBtn");
+  if(S.hintUsed[k]) hb.hidden=true; else if(S.hintsLeft<=0){hb.disabled=true; hb.textContent="No hints left";}
+  hb.onclick=()=>{if(S.hintsLeft<=0||S.hintUsed[k]) return; S.hintsLeft--; S.hintUsed[k]=true; S.remaining-=HINT_COST; save(); renderBar(); renderHint(st,k); hb.hidden=true;};
+  if(S.lockUntil>Date.now()) openLock();
+}
+function renderHint(st,k){const a=document.getElementById("hintArea"); a.innerHTML=S.hintUsed[k]?`<div class="hintbox"><b>💡 Hint:</b> ${esc(st.hint)}</div>`:"";}
+function fb(cls,t){document.getElementById("fbArea").innerHTML=`<div class="fb ${cls}" role="status">${t}</div>`;}
+
+/* ---- task types ---- */
+function taskMC(el,st){
+  const dr=draft(); dr.a=dr.a||[];
+  let html=`<p class="intro">${esc(st.intro)}</p>`;
+  if(st.showGuess&&S.guess) html+=`<div class="fb info" style="margin:0 0 10px">Your guess at the entrance: “${esc(S.guess)}” – were you right?</div>`;
+  html+=st.items.map((it,i)=>`<div class="q"><div class="qt">${st.items.length>1?(i+1)+". ":""}${esc(it.q)}</div><div class="opts">${it.opts.map((o,j)=>`<button class="opt ${dr.a[i]===j?"sel":""}" data-i="${i}" data-j="${j}" aria-pressed="${dr.a[i]===j}">${esc(o)}</button>`).join("")}</div></div>`).join("");
+  el.innerHTML=html;
+  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{dr.a[+b.dataset.i]=+b.dataset.j; save(); taskMC(el,st);});
+}
+function taskRWN(el,st){
+  const dr=draft(); dr.a=dr.a||[]; const L=["right","wrong","not in"];
+  el.innerHTML=`<p class="intro">${esc(st.intro)}</p><div class="legend"><span><b>R</b> = right</span><span><b>W</b> = wrong</span><span><b>NIT</b> = not in the text</span></div>`+
+    st.items.map((it,i)=>`<div class="rwn"><span class="n">${i+1}</span><span>${esc(it.q)}</span><span class="b3">${["R","W","NIT"].map((l,v)=>`<button class="${dr.a[i]===v?"sel":""}" data-i="${i}" data-v="${v}" aria-label="${L[v]}" aria-pressed="${dr.a[i]===v}">${l}</button>`).join("")}</span></div>`).join("");
+  el.querySelectorAll(".b3 button").forEach(b=>b.onclick=()=>{dr.a[+b.dataset.i]=+b.dataset.v; save(); taskRWN(el,st);});
+}
+function taskType(el,st){
+  const dr=draft(); dr.a=dr.a||[];
+  el.innerHTML=`<p class="intro">${esc(st.intro)}</p>`+st.items.map((it,i)=>`<div class="tr"><span class="n">${i+1}</span><span>${esc(it.q)} <span class="ln">(${esc(it.ln)})</span></span><input id="t${i}" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(it.pat)}" value="${esc(dr.a[i]||"")}" aria-label="Word ${i+1}"></div>`).join("");
+  el.querySelectorAll("input").forEach(inp=>inp.oninput=()=>{dr.a[+inp.dataset.i]=inp.value; save();});
+}
+function taskChat(el,st){
+  const dr=draft(); dr.a=dr.a||[];
+  el.innerHTML=`<p class="intro">${esc(st.intro)}</p><div class="box">${st.box.map(b=>`<span>${esc(b)}</span>`).join("")}</div><div class="chat">`+
+    st.items.map((it,i)=>`<div class="msg ${it.who==="Tim"?"me":""}"><span class="who">${esc(it.who)}</span>${esc(it.pre)} <b style="color:#b0491c">${i+1}</b> <input id="c${i}" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(dr.a[i]||"")}" aria-label="Gap ${i+1}"> ${esc(it.post)}</div>`).join("")+`</div>`;
+  el.querySelectorAll("input").forEach(inp=>inp.oninput=()=>{dr.a[+inp.dataset.i]=inp.value; save();});
+}
+function taskGuess(el,st){
+  el.innerHTML=`<p class="intro">${esc(st.intro)}</p><label for="guess" style="font-weight:700">Our guess:</label><textarea id="guess" maxlength="300" placeholder="Tim's year was like a roller coaster because …">${esc(S.guess)}</textarea>`;
+  document.getElementById("guess").oninput=e=>{S.guess=e.target.value; save();};
+}
+/* slots: rows with one slot each, chips from a pool */
+function taskSlots(el,st){
+  const dr=draft(); dr.p=dr.p||{}; // rowIndex -> chipId
+  const used=new Set(Object.values(dr.p));
+  const chip=c=>`<button class="chip ${sel===c.id?"sel":""}" data-chip="${c.id}">${esc(c.t)}</button>`;
+  const byId=Object.fromEntries(st.chips.map(c=>[c.id,c]));
+  let html=`<p class="intro">${esc(st.intro)}<small>Drag a card into a box – or tap a card, then tap a box. Tap a card in a box to take it out.</small></p>`;
+  if(st.example) html+=`<div class="slotrow ex"><span class="rl">${esc(st.example.row)} <span style="font-size:12px;border:1px solid #aaa;border-radius:4px;padding:0 4px">EXAMPLE</span></span><div class="slot"><span class="chip ex">${esc(st.example.chip)}</span></div></div>`;
+  html+=st.rows.map((r,i)=>`<div class="slotrow"><span class="rl">${esc(r)}</span><div class="slot" data-drop="slot" data-row="${i}">${dr.p[i]?chip(byId[dr.p[i]]):`<span class="ph">tap or drop here</span>`}</div></div>`).join("");
+  html+=`<div class="pool stick" data-drop="pool"><span class="lbl">Cards</span>${st.chips.filter(c=>!used.has(c.id)).map(chip).join("")}</div>`;
+  el.innerHTML=html;
+  wireDnD(el,(chipId,target)=>{
+    for(const k in dr.p) if(dr.p[k]===chipId) delete dr.p[k];
+    if(target&&target.dataset.drop==="slot"){dr.p[target.dataset.row]=chipId;}
+    sel=null; save(); taskSlots(el,st);
+  },()=>taskSlots(el,st));
+}
+/* zones: many chips per zone */
+function taskZones(el,st){
+  const dr=draft(); dr.z=dr.z||{}; // chipId -> zone
+  const chip=c=>`<button class="chip ${sel===c.id?"sel":""}" data-chip="${c.id}">${esc(c.t)}</button>`;
+  let html=`<p class="intro">${esc(st.intro)}<small>Drag a card into UP or DOWN – or tap a card, then tap UP or DOWN.</small></p><div class="zones">`+
+    st.zones.map((z,i)=>`<div class="zone ${i===0?"up":"down"}" data-drop="zone" data-zone="${i}"><h4>${esc(z)}</h4>${st.chips.filter(c=>dr.z[c.id]===i).map(chip).join("")}</div>`).join("")+`</div>`;
+  html+=`<div class="pool" data-drop="pool"><span class="lbl">Cards</span>${st.chips.filter(c=>dr.z[c.id]===undefined).map(chip).join("")}</div>`;
+  el.innerHTML=html;
+  wireDnD(el,(chipId,target)=>{
+    if(target&&target.dataset.drop==="zone") dr.z[chipId]=+target.dataset.zone; else delete dr.z[chipId];
+    sel=null; save(); taskZones(el,st);
+  },()=>taskZones(el,st));
+}
+/* drag with pointer events + tap alternative */
+function wireDnD(el,place,rerender){
+  el.querySelectorAll("[data-chip]").forEach(c=>{
+    c.addEventListener("pointerdown",ev=>{
+      if(ev.button>0) return;
+      const id=c.dataset.chip, sx=ev.clientX, sy=ev.clientY; let ghost=null, hot=null;
+      c.setPointerCapture&&c.setPointerCapture(ev.pointerId);
+      const move=e=>{
+        if(!ghost&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){ghost=c.cloneNode(true); ghost.classList.add("ghost-drag"); ghost.style.width=c.offsetWidth+"px"; document.body.appendChild(ghost); c.style.opacity=".35";}
+        if(ghost){ghost.style.left=e.clientX+"px"; ghost.style.top=e.clientY+"px";
+          const t=document.elementFromPoint(e.clientX,e.clientY); const d=t&&t.closest("[data-drop]");
+          if(hot&&hot!==d) hot.classList.remove("hot"); if(d&&d.dataset.drop!=="pool"){d.classList.add("hot");} hot=d;}
+      };
+      const up=e=>{
+        c.removeEventListener("pointermove",move); c.removeEventListener("pointerup",up); c.removeEventListener("pointercancel",up);
+        if(ghost){ghost.remove(); c.style.opacity=""; if(hot) hot.classList.remove("hot");
+          const t=document.elementFromPoint(e.clientX,e.clientY); const d=t&&t.closest("[data-drop]");
+          if(d&&el.contains(d)) place(id,d); else rerender();
+        } else { // tap
+          if(c.closest(".slot")||c.closest(".zone")){ if(sel===id){place(id,null);} else {sel=id; rerender();} }
+          else {sel=(sel===id?null:id); rerender();}
+        }
+      };
+      c.addEventListener("pointermove",move); c.addEventListener("pointerup",up); c.addEventListener("pointercancel",up);
+    });
+  });
+  el.querySelectorAll("[data-drop]").forEach(d=>d.addEventListener("click",e=>{
+    if(e.target.closest("[data-chip]")) return;
+    if(sel){place(sel,d.dataset.drop==="pool"?null:d);}
+  }));
+}
+
+/* ---------- checking ---------- */
+function check(st){
+  if(S.lockUntil>Date.now()) return;
+  const d=DATA.doors[S.door], dr=draft(); let ok=0, total=0, incomplete=false;
+  const id=d.id, si=S.step;
+  if(st.type==="mc"||st.type==="rwn"){total=st.items.length; st.items.forEach((it,i)=>{if(dr.a==null||dr.a[i]==null) incomplete=true; else if(H(id,si,i,dr.a[i])===it.h) ok++;});}
+  else if(st.type==="type"){total=st.items.length; st.items.forEach((it,i)=>{const v=norm(dr.a&&dr.a[i],true); if(!v) incomplete=true; else if(it.h.includes(H(id,si,i,v))) ok++;});}
+  else if(st.type==="chat"){total=st.items.length; st.items.forEach((it,i)=>{const v=norm(dr.a&&dr.a[i]); if(!v) incomplete=true; else if(it.h.includes(H(id,si,i,v))) ok++;});}
+  else if(st.type==="slots"){total=st.rows.length; st.rows.forEach((r,i)=>{const c=dr.p&&dr.p[i]; if(!c) incomplete=true; else if(H(id,si,i,c)===st.h[i]) ok++;});}
+  else if(st.type==="zones"){total=st.chips.length; st.chips.forEach(c=>{const z=dr.z&&dr.z[c.id]; if(z===undefined) incomplete=true; else if(H(id,si,c.id,z)===st.h[c.id]) ok++;});}
+  else if(st.type==="guess"){const words=(S.guess||"").trim().split(/\s+/).filter(Boolean).length; if(words<3){fb("info","Write a short guess first (at least a few words)."); return;} return stepDone();}
+  if(incomplete){fb("info","Answer everything first – then press Check."); return;}
+  if(ok===total) return stepDone();
+  S.remaining-=PENALTY; S.lockUntil=Date.now()+LOCK_MS; save();
+  fb("bad",`${ok} of ${total} correct. The lights flicker … −30 seconds!`);
+  openLock();
+}
+function stepDone(){
+  const d=DATA.doors[S.door];
+  S.stepsDone[stepKey()]=true; sel=null;
+  if(S.step<d.steps.length-1){S.step++; save(); render(); window.scrollTo(0,0); toast("✓ Correct! On to part "+(S.step+1)+"."); return;}
+  S.letters[S.door]=d.letter; S.door++; S.step=0; save();
+  view="map"; render(); window.scrollTo(0,0);
+  toast(`🔓 Door ${S.door} is open! You found the letter “${d.letter}”.`,4000);
+}
+function openLock(){
+  if(document.getElementById("lockLeft")) return;
+  const o=document.createElement("div"); o.className="lock"; o.id="lockOv";
+  o.innerHTML=`<div class="in"><div class="flicker">${ghostSVG(90)}</div><div style="font-weight:800;font-size:20px">The lights are out!</div><div style="color:var(--muted)">Check your answers in the book while you wait.</div><div class="big" id="lockLeft">15 s</div></div>`;
+  document.body.appendChild(o);
+}
+function closeLock(){const o=document.getElementById("lockOv"); if(o) o.remove();}
+
+/* ---------- final + certificate ---------- */
+function renderFinal(){
+  const k="final";
+  app.innerHTML=`<section class="room"><div class="room-head"><span class="ic">🚪</span><div><div class="no">Exit</div><h2 class="neon" style="font-size:24px">${esc(DATA.final.title)}</h2><div class="sub">The last lock</div></div></div>
+  <div class="room-story">${ghostSVG(34)}<span>The ghost whispers: “Tim's report ends with a word that will stay with him … Type it and you are free!”</span></div>
+  <div class="task final"><p class="intro">${esc(DATA.final.intro)}</p><div class="letters">${S.letters.map(l=>`<span>${l}</span>`).join("")}</div>
+  <label for="code" style="font-weight:700">Code word</label><input id="code" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="_ _ _ _ _ _ _"></div>
+  <div id="hintArea">${S.hintUsed[k]?`<div class="hintbox"><b>💡 Hint:</b> ${esc(DATA.final.hint)}</div>`:""}</div><div id="fbArea"></div>
+  <div class="actions"><button class="btn sec" id="back">← Map</button><span class="sp"></span><button class="btn sec" id="hintBtn" ${S.hintUsed[k]||S.hintsLeft<=0?"hidden":""}>💡 Hint (−1 min)</button><button class="btn cy" id="check">Escape!</button></div></section>`;
+  document.getElementById("back").onclick=()=>{view="map"; render();};
+  const hb=document.getElementById("hintBtn"); hb.onclick=()=>{if(S.hintsLeft<=0) return; S.hintsLeft--; S.hintUsed[k]=true; S.remaining-=HINT_COST; save(); render();};
+  const inp=document.getElementById("code");
+  document.getElementById("check").onclick=()=>{
+    if(S.lockUntil>Date.now()) return;
+    const v=norm(inp.value); if(!v){fb("info","Type the code word first."); return;}
+    if(DATA.final.h.includes(H("final",0,0,v))){S.finished=true; S.finishRemaining=S.remaining; save(); view="cert"; render(); window.scrollTo(0,0); return;}
+    S.remaining-=PENALTY; S.lockUntil=Date.now()+LOCK_MS; save(); fb("bad","That's not the code word. −30 seconds!"); openLock();
+  };
+  inp.onkeydown=e=>{if(e.key==="Enter") document.getElementById("check").click();};
+  if(S.lockUntil>Date.now()) openLock();
+}
+function renderCert(){
+  const ms=S.finishRemaining, over=ms<0, used=MAX_HINTS-S.hintsLeft;
+  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  app.innerHTML=`<section class="cert">
+    <div style="display:flex;justify-content:center;gap:10px;font-size:40px" aria-hidden="true">🎢 👻 🎡</div>
+    <div class="small" style="letter-spacing:.2em;text-transform:uppercase;font-weight:800">Certificate</div>
+    <h2>Ghost Train Survivors</h2>
+    <div class="small">This is to certify that the team</div>
+    <div class="team">${esc(S.team)}</div>
+    <div class="small">escaped from the ghost train and knows Tim's roller coaster year inside out!</div>
+    <div class="stats"><div>${over?"Overtime":"Time left"}<b>${fmt(Math.abs(ms))}</b></div><div>Hints used<b>${used} of ${MAX_HINTS}</b></div><div>Date<b style="font-size:16px">${esc(date)}</b></div></div>
+    <p style="font-weight:700;margin:16px 0 0">One last question (not marked):</p>
+    <p class="small" style="margin:4px 0 0">Would <i>you</i> like to work at an amusement park in a gap year? Why (not)? Write two sentences.</p>
+    <textarea id="refl" maxlength="500" placeholder="I would / wouldn't like to … because …">${esc(S.reflection)}</textarea>
+    <p class="small" style="margin-top:12px">📸 Take a screenshot of this certificate and show it to your teacher.</p>
+  </section>`;
+  document.getElementById("refl").oninput=e=>{S.reflection=e.target.value; save();};
+}
+
+/* ---------- teacher mode (?teacher) ---------- */
+function decodeSol(){const key="capybara-ghost"; const b=atob(DATA.sol); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i)^key.charCodeAt(i%key.length); return JSON.parse(new TextDecoder().decode(u));}
+let teacherOK=false;
+if(/[?&]teacher\b/.test(location.search)){
+  const tb=document.getElementById("tBtn"); tb.hidden=false; tb.onclick=openTeacher;
+}
+function openTeacher(){
+  const p=document.createElement("div"); p.className="tpanel";
+  const close=()=>{p.remove();};
+  if(!teacherOK){
+    p.innerHTML=`<div class="in"><h3>Teacher mode</h3><label for="pin">PIN</label><div class="row"><input id="pin" inputmode="numeric" type="password" style="font:inherit;padding:10px;border-radius:10px;border:2px solid #ccc"><button class="btn cy" id="pinGo">Open</button><button class="btn sec" id="pinX">Close</button></div><div id="pinMsg"></div></div>`;
+    document.body.appendChild(p);
+    p.querySelector("#pinX").onclick=close;
+    p.querySelector("#pinGo").onclick=()=>{if(H("pin",0,0,p.querySelector("#pin").value.trim())===DATA.pinH){teacherOK=true; close(); openTeacher();} else p.querySelector("#pinMsg").textContent="Wrong PIN.";};
+    return;
+  }
+  const sol=decodeSol();
+  p.innerHTML=`<div class="in"><h3>Teacher mode – solutions</h3>
+    <div class="row"><button class="btn cy" id="skip">Open current door</button><button class="btn sec" id="reset">Reset game</button><button class="btn sec" id="tx">Close</button></div>
+    <div id="resetAsk"></div>
+    ${sol.map((d,i)=>`<div class="sol"><b>${i<7?"Door "+(i+1)+": ":""}${esc(d.door)} ${d.letter?"→ letter "+d.letter:""}</b>${d.steps.map(s=>s.map(x=>esc(x)).join("<br>")).join("<hr>")}</div>`).join("")}</div>`;
+  document.body.appendChild(p);
+  p.querySelector("#tx").onclick=close;
+  p.querySelector("#skip").onclick=()=>{
+    if(!S.started){S.started=true; S.team=S.team||"Teacher";}
+    if(S.door<DATA.doors.length){S.letters[S.door]=DATA.doors[S.door].letter; S.door++; S.step=0; S.lockUntil=0; closeLock(); save(); view="map"; close(); render();}
+  };
+  p.querySelector("#reset").onclick=()=>{
+    p.querySelector("#resetAsk").innerHTML=`<div class="row" style="align-items:center"><b>Really reset? All progress on this iPad is deleted.</b><button class="btn" id="rYes">Yes, reset</button></div>`;
+    p.querySelector("#rYes").onclick=()=>{S=fresh(); try{localStorage.removeItem(KEY);}catch(e){} closeLock(); close(); view="start"; render();};
+  };
+}
+
+/* ---------- boot ---------- */
+if(S.started&&!S.finished) view="map";
+render();
+</script>
+</body>
+</html>
