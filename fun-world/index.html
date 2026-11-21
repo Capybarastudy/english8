@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your Shift at Fun World</title>
+<style>
+/* Layout: a sunny amusement-park day. A ticket-style stamp card is the map of the learning path; every station is a booth. */
+:root{
+  --sky:#e9f6ff; --bg:#fff8ec; --ink:#23263a; --muted:#5f6478; --card:#ffffff; --hair:#e6e1d6;
+  --red:#e8505b; --orange:#f08c00; --teal:#2a9d8f; --blue:#3a86ff; --violet:#6a4cc2; --yellow:#ffd23f;
+  --good:#1f9d57; --good-bg:#e3f6ea; --bad:#d93a3a; --bad-bg:#fde8e8;
+  --f-head:"Avenir Next","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --f-body:"Avenir Next","Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:linear-gradient(var(--sky),var(--bg) 340px) var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-bottom:max(30px,env(safe-area-inset-bottom,0px));overflow-x:hidden}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:960px;margin:0 auto}
+[hidden]{display:none!important}
+.bar{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:calc(8px + env(safe-area-inset-top,0px)) 0 8px;background:linear-gradient(var(--sky) 75%,transparent)}
+.brand{flex:1;min-width:160px;font-family:var(--f-head);font-weight:800;font-size:16px;color:var(--red);display:flex;align-items:center;gap:8px}
+.pill{background:#fff;border:1.5px solid var(--hair);border-radius:999px;padding:5px 12px;font-weight:700;font-size:14px;display:flex;gap:6px;align-items:center}
+.stamps{display:flex;gap:4px}
+.stamps i{width:24px;height:24px;border-radius:50%;border:2px dashed #c9c2b1;display:grid;place-items:center;font-style:normal;font-size:13px}
+.stamps i.on{border:0;background:var(--c);color:#fff}
+/* hero */
+.hero{margin-top:6px;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 6px 20px rgba(35,38,58,.08)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .in{padding:18px 22px 22px;display:grid;gap:12px}
+h1{font-family:var(--f-head);font-weight:900;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0;color:var(--red);text-wrap:balance}
+.lead{margin:0;font-size:17px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.rule{background:#fff7e3;border-radius:14px;padding:10px 12px;display:flex;gap:10px;font-size:15px}
+.rule .e{font-size:26px;line-height:1}
+.rule b{display:block}
+.field{display:flex;gap:10px;flex-wrap:wrap}
+.field input{flex:1;min-width:200px;font:inherit;padding:12px 14px;border-radius:12px;border:2px solid #d8d1c0;background:#fff}
+.btn{min-height:48px;padding:10px 20px;border-radius:14px;border:0;font-weight:800;background:var(--red);color:#fff;box-shadow:0 4px 0 #b2323c}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #b2323c}
+.btn.sec{background:#fff;color:var(--ink);box-shadow:0 4px 0 #d8d1c0;border:1.5px solid #d8d1c0}
+.btn.go{background:var(--teal);box-shadow:0 4px 0 #1c6e64}
+.btn[disabled]{opacity:.45;pointer-events:none}
+/* stamp card */
+.cardbox{margin-top:12px;background:#fff;border-radius:24px;padding:18px;box-shadow:0 6px 20px rgba(35,38,58,.08);position:relative}
+.cardbox h2{font-family:var(--f-head);margin:0 0 4px;font-size:24px}
+.cardbox p{margin:0 0 14px;color:var(--muted)}
+.booths{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.booths{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.booth{position:relative;text-align:left;border:0;border-radius:18px;padding:0;background:var(--card);box-shadow:0 0 0 2px var(--hair);overflow:hidden;display:flex;flex-direction:column;min-height:170px}
+.booth .roof{height:26px;background:repeating-linear-gradient(90deg,var(--c) 0 22px,#fff 22px 44px)}
+.booth .b{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.booth .no{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.booth .ic{font-size:32px;line-height:1.1}
+.booth .t{font-family:var(--f-head);font-weight:800;font-size:17px}
+.booth .s{font-size:13px;color:var(--muted)}
+.booth .st{margin-top:auto;font-weight:800;font-size:13px;color:var(--c)}
+.booth.locked{opacity:.5}
+.booth.locked .ic{filter:grayscale(1)}
+.booth.next{box-shadow:0 0 0 3px var(--c),0 8px 18px rgba(0,0,0,.08);animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.stamp{position:absolute;right:8px;top:30px;width:60px;height:60px;border-radius:50%;border:3px solid var(--c);color:var(--c);display:grid;place-items:center;font-family:var(--f-head);font-weight:900;font-size:11px;text-align:center;line-height:1.05;transform:rotate(-14deg);background:rgba(255,255,255,.85)}
+.bonusrow{margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.bonushead{margin:16px 0 6px;font-weight:800;color:var(--violet)}
+/* station */
+.station{margin-top:12px;background:#fff;border-radius:24px;box-shadow:0 6px 20px rgba(35,38,58,.08);overflow:hidden}
+.st-head{background:var(--c);color:#fff;padding:14px 18px;display:flex;gap:14px;align-items:center}
+.st-head .ic{font-size:40px;line-height:1;background:#fff;border-radius:16px;width:58px;height:58px;display:grid;place-items:center}
+.st-head .no{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+.st-head h2{margin:0;font-family:var(--f-head);font-size:26px;line-height:1.1}
+.st-awn{height:16px;background:repeating-linear-gradient(90deg,var(--c) 0 24px,#fff 24px 48px)}
+.story{display:flex;gap:12px;align-items:center;padding:12px 18px;background:#fffaf0;border-bottom:1px solid var(--hair);font-size:16px}
+.story .av{flex:none}
+.dots{display:flex;gap:6px;padding:12px 18px 0}
+.dots i{height:6px;flex:1;border-radius:4px;background:#ece6d8}
+.dots i.on{background:var(--c)} .dots i.ok{background:var(--good)}
+.task{padding:14px 18px 4px}
+.intro{font-weight:800;margin:0 0 10px}
+.q{padding:10px 0;border-bottom:1px solid var(--hair)}
+.q:last-child{border-bottom:0}
+.qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.opt{min-height:46px;text-align:left;padding:9px 14px;border-radius:12px;border:2px solid var(--hair);background:#fff;font-size:16px}
+.opt.sel{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);font-weight:700}
+.q.good .qt::after,.ln.good::after{content:" ✓";color:var(--good);font-weight:900}
+.q.bad,.ln.bad{background:var(--bad-bg);border-radius:10px;padding-left:8px;padding-right:8px}
+.ln{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid var(--hair)}
+.ln .n{font-weight:800;color:var(--muted);width:24px}
+.ln input{font:inherit;font-size:17px;padding:8px 10px;border-radius:10px;border:2px solid var(--hair);width:min(230px,100%);min-height:44px;background:#fffdf6}
+.ln .qq{width:100%;font-weight:700;margin-left:30px}
+.ordl{display:grid;gap:8px}
+.oi{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--hair);border-radius:12px;padding:6px 8px 6px 12px;min-height:50px}
+.oi .pos{flex:none;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.oi .tx{flex:1}
+.oi .mv{display:flex;gap:4px}
+.oi .mv button{width:44px;height:40px;border-radius:10px;border:1.5px solid var(--hair);background:#faf7f0;font-size:18px}
+.oi.good{border-color:var(--good);background:var(--good-bg)}
+.oi.bad{border-color:var(--bad);background:var(--bad-bg)}
+.words{display:flex;flex-wrap:wrap;gap:8px}
+.wd{min-height:46px;padding:8px 16px;border-radius:999px;border:2px solid var(--hair);background:#fff;font-weight:700}
+.wd.sel{background:var(--c);border-color:var(--c);color:#fff}
+.wd.bad{background:var(--bad-bg);border-color:var(--bad);color:#8f1d1d}
+.boardbox{margin:0 0 12px;border-radius:16px;overflow:auto;border:3px solid #23263a;background:#23263a}
+.boardbox table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px;color:#fff}
+.boardbox th{background:#2f3350;color:var(--yellow);padding:8px 10px;text-align:left;font-family:var(--f-head)}
+.boardbox td{padding:7px 10px;border-top:1px solid #3a3f5f;font-variant-numeric:tabular-nums}
+.boardbox td:first-child{color:#aeb4d6;font-weight:700}
+.boardbox .cap{background:var(--red);color:#fff;font-weight:900;letter-spacing:.12em;text-align:center;padding:5px;font-size:13px}
+.mapbox{margin:0 0 12px;border-radius:16px;overflow:hidden;border:2px solid var(--hair);background:#cfeec0}
+.mapbox svg{display:block;width:100%;height:auto}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 18px 18px}
+.actions .sp{flex:1}
+.fb{margin:10px 18px 0;padding:10px 14px;border-radius:12px;font-weight:700}
+.fb.bad{background:var(--bad-bg);color:#8f1d1d}.fb.good{background:var(--good-bg);color:#14663a}.fb.info{background:#eef3ff;color:#23408f}
+.hintbox{margin:10px 18px 0;padding:10px 14px;border-radius:12px;background:#fff4cf;color:#5a4300;font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;font-weight:800;padding:12px 18px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+.bigstamp{position:fixed;inset:0;z-index:55;display:grid;place-items:center;pointer-events:none}
+.bigstamp div{width:220px;height:220px;border-radius:50%;border:8px solid var(--c);color:var(--c);display:grid;place-items:center;text-align:center;font-family:var(--f-head);font-weight:900;font-size:26px;line-height:1.1;background:rgba(255,255,255,.92);animation:stampin .5s cubic-bezier(.2,1.6,.4,1) both;transform:rotate(-14deg)}
+@keyframes stampin{0%{transform:scale(2.2) rotate(-14deg);opacity:0}100%{transform:scale(1) rotate(-14deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){.booth.next,.bigstamp div{animation:none}}
+.cert{margin-top:12px;background:#fff;border-radius:24px;padding:26px 22px;text-align:center;border:6px double var(--yellow)}
+.cert h2{font-family:var(--f-head);font-size:34px;margin:6px 0;color:var(--red)}
+.cert .name{font-size:30px;font-weight:900}
+.cert .stampline{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:16px 0}
+.cert .stampline span{width:74px;height:74px;border-radius:50%;border:3px solid var(--c);color:var(--c);display:grid;place-items:center;font-weight:900;font-size:11px;transform:rotate(-10deg);line-height:1.1}
+.roleplay{margin:14px auto 0;max-width:620px;text-align:left;background:#eef3ff;border-radius:16px;padding:12px 16px}
+.roleplay b{color:#23408f}
+#tBtn{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;min-height:44px;border-radius:12px;border:0;background:#0d6b5e;color:#fff;font-weight:800;padding:8px 14px}
+.tpanel{position:fixed;inset:0;z-index:70;background:rgba(20,20,30,.7);display:grid;place-items:center;padding:16px}
+.tpanel .in{background:#fff;border-radius:18px;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:18px}
+.tpanel .sol{font-size:14px;background:#f6f3ea;border-radius:10px;padding:8px 12px;margin:6px 0}
+.tpanel .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+.tpanel input{font:inherit;padding:10px;border-radius:10px;border:2px solid #ccc}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar" id="bar" hidden><div class="brand">🎡 Your shift at Fun World</div><div class="pill" id="who"></div><div class="pill"><span>Stamps</span><span class="stamps" id="stamps"></span></div></div>
+  <main id="app"></main>
+</div>
+<button id="tBtn" hidden>Teacher</button>
+<script>
+"use strict";
+const DATA={"rides": {"cols": ["Ghost Train", "Big Loop", "Splash River", "Big Wheel"], "rows": [["Waiting time", "25 min", "40 min", "15 min", "5 min"], ["Ticket", "$6", "$8", "$5", "$3"], ["Ride time", "4 min", "2 min", "6 min", "12 min"], ["Height", "–", "45 m", "10 m", "55 m"], ["Age", "8+", "12+", "6+", "all ages"]]}, "stations": [{"id": "s1", "icon": "🎟️", "title": "Info desk", "sub": "Help your customers", "color": "#e8505b", "story": "Your first job today: the information desk at the entrance. Use the ride board to help the visitors.", "parts": [{"type": "mc", "intro": "Read the ride board. Then answer the visitors' questions.", "board": true, "hint": "Look at one line of the board at a time: ticket, age, waiting time …", "items": [{"q": "“I've only got $4 left. Which ride can I go on?”", "opts": ["Ghost Train", "Big Loop", "Splash River", "Big Wheel"]}, {"q": "“My son is seven. Can he go on the Ghost Train?”", "opts": ["Yes, he can.", "No, he can't – he's too young.", "Only with a teacher."]}, {"q": "“We're in a hurry. Which ride has the shortest waiting time?”", "opts": ["Ghost Train", "Big Loop", "Splash River", "Big Wheel"]}, {"q": "“Which ride is the most expensive?”", "opts": ["Ghost Train", "Big Loop", "Splash River", "Big Wheel"]}, {"q": "“I'd like a long ride. Which ride takes the longest?”", "opts": ["Ghost Train", "Big Loop", "Splash River", "Big Wheel"]}, {"q": "“My granny is 80. Can she go on the Big Wheel?”", "opts": ["Yes, it's for all ages.", "No, it's too high for her.", "Only if she pays $8."]}]}, {"type": "type", "intro": "Now answer in a short sentence. Use the numbers from the board.", "board": true, "hint": "Start your answer like the example and only add the number.", "items": [{"q": "“How much is a ticket for the Splash River?”", "pre": "It's", "post": "."}, {"q": "“How long do we have to wait for the Big Loop?”", "pre": "You have to wait for", "post": "."}, {"q": "“How high is the Big Wheel?”", "pre": "It's", "post": "high."}]}]}, {"id": "s2", "icon": "🗺️", "title": "Map point", "sub": "Give directions", "color": "#f08c00", "story": "Visitors are lost! You are at the entrance (★). Look at the map and help them.", "parts": [{"type": "mc", "intro": "Read the directions. Where do the visitors end up? Start at ★ every time.", "map": true, "hint": "Put your finger on ★ and follow the directions step by step. ‘Turn left’ means left from where you are walking.", "items": [{"q": "Go straight on up Main Street. At the fountain, turn right. It's on your left.", "opts": ["Ghost Train", "Ice cream", "Big Loop", "Toilets"]}, {"q": "Go straight on. Turn left at the fountain and walk over the bridge. It's on your right.", "opts": ["Big Wheel", "Snack bar", "Ghost Train", "Splash River"]}, {"q": "Turn left at the entrance and walk along Lake Path. It's at the end of the path.", "opts": ["Splash River", "Gift shop", "Big Loop", "Ice cream"]}, {"q": "Go straight on past the fountain to the end of Main Street. It's opposite the Big Loop.", "opts": ["Big Wheel", "Toilets", "Snack bar", "Gift shop"]}]}, {"type": "order", "intro": "A visitor wants to go to the snack bar. Put the directions in the right order.", "map": true, "hint": "From ★: first walk, then turn, then you see the snack bar.", "items": ["Turn right at the fountain.", "The snack bar is at the end, next to the toilets.", "Go straight on up Main Street.", "Walk past the ice cream stand."], "n": 4}]}, {"id": "s3", "icon": "🎢", "title": "Ride check", "sub": "Compare the rides", "color": "#2a9d8f", "story": "Your friends are coming next week. They want to know which rides to try. Compare the rides!", "parts": [{"type": "type", "intro": "Complete the sentences with the right form of the adjective. Use the board.", "board": true, "hint": "Short adjectives: -er / the -est. Long adjectives: more / the most. Same: as … as. Careful: good – better – the best!", "items": [{"q": "", "pre": "The Big Loop is", "post": "than the Splash River. (expensive)"}, {"q": "", "pre": "The Big Wheel is", "post": "ride in the park. (cheap)"}, {"q": "", "pre": "The Big Wheel is", "post": "than the Big Loop. (high)"}, {"q": "", "pre": "The waiting time for the Ghost Train is", "post": "than for the Splash River. (long)"}, {"q": "", "pre": "The Big Loop is", "post": "ride in Fun World. (exciting)"}, {"q": "", "pre": "The Splash River is not", "post": "the Big Loop. (fast)"}, {"q": "", "pre": "Our pizza is good, but the burgers are", "post": ". (good)"}, {"q": "", "pre": "The queue at the Ghost Train was bad, but at the Big Loop it was", "post": "! (bad)"}]}, {"type": "multi", "intro": "Your friends say Fun World is great! Which words mean ‘great’? Tap all of them.", "hint": "There are 7 words that mean ‘great’. The others mean ‘bad’ or something different.", "words": ["amazing", "boring", "awesome", "fantastic", "terrible", "brilliant", "awful", "excellent", "wonderful", "disappointing", "cool", "expensive"]}]}, {"id": "s4", "icon": "🍔", "title": "Snack bar", "sub": "Talk to your customers", "color": "#3a86ff", "story": "Lunch time! Now you work at the snack bar. Get ready for the role play with your group.", "parts": [{"type": "mc", "intro": "What do you say? Choose the best sentence.", "hint": "Be polite: Could I …? Would you like …? I'd like …", "items": [{"q": "You greet two customers.", "opts": ["What do you want?", "Hi there! How can I help you?", "Go away, we're closed."]}, {"q": "The customer needs a moment.", "opts": ["Just a second, I'm still thinking.", "I think yes.", "Wait you!"]}, {"q": "The friend orders.", "opts": ["I become a burger.", "I'd like a burger and an orange juice, please.", "Give me burger."]}, {"q": "You ask about the park.", "opts": ["Is it your first time at Fun World?", "Are you first time here?", "Was you here before?"]}, {"q": "You tell the price.", "opts": ["That makes $17.50, please.", "That does $17.50.", "It costs you $17.50 money."]}, {"q": "You give the change and say goodbye.", "opts": ["Here's your change. Have a nice day!", "Take your money and go.", "Here is your rest. Good day!"]}]}, {"type": "order", "intro": "Put the snack bar dialogue in the right order.", "hint": "Hello → order → food is ready → price → paying → goodbye.", "items": ["C: Two burgers and an orange juice, please.", "C: Yes, it is. It's the best park I've ever seen!", "C: Here's a twenty-dollar note.", "A: Here are your burgers. That makes $17.50.", "A: Hi there! How can I help you?", "A: Sure. Is it your first time at Fun World?", "A: Thanks. Here's your change. Have a nice day!"], "n": 7}]}, {"id": "b1", "icon": "🧾", "title": "Bonus: The passive", "sub": "G1 · Fun World facts", "color": "#6a4cc2", "story": "Extra job for fast workers: write the facts for the new Fun World website.", "parts": [{"type": "type", "intro": "Complete the facts with the passive (simple present or simple past).", "hint": "Passive = am / is / are / was / were + 3rd form (built, opened, sold …).", "items": [{"q": "", "pre": "Fun World", "post": "in 1985. (open)"}, {"q": "", "pre": "The Big Wheel", "post": "in 2010. (build)"}, {"q": "", "pre": "Every day, 3,000 hot dogs", "post": "at the snack bar. (sell)"}, {"q": "", "pre": "The park", "post": "every night. (clean)"}, {"q": "", "pre": "Last summer, two new rides", "post": ". (add)"}]}]}, {"id": "b2", "icon": "❓", "title": "Bonus: Negative questions", "sub": "G2 · Surprised visitors", "color": "#d6281c", "story": "Some visitors are surprised. Help them to ask negative questions.", "parts": [{"type": "mc", "intro": "Choose the right negative question.", "hint": "Negative question = don't / doesn't / isn't / aren't / didn't / haven't + subject … ?", "items": [{"q": "You think the Big Wheel is open. But it looks closed.", "opts": ["Isn't the Big Wheel open today?", "Is not the Big Wheel open today?", "Doesn't the Big Wheel open today is?"]}, {"q": "Your friend didn't go on the Big Loop. You're surprised.", "opts": ["Did you go not on the Big Loop?", "Didn't you go on the Big Loop?", "Don't you went on the Big Loop?"]}, {"q": "Your little brother isn't hungry. You're surprised.", "opts": ["Aren't you hungry?", "Don't you hungry?", "Isn't you hungry?"]}, {"q": "Your friend doesn't like roller coasters. You're surprised.", "opts": ["Like you not roller coasters?", "Doesn't you like roller coasters?", "Don't you like roller coasters?"]}]}]}], "nMain": 4, "k": "PS41RENSXUgNVhRGREJXXF5MVHBJGD0uTFNaUEBED1AYAhoCGw4AH0YBRRoAHBgSTxYDCEEEShVXQldNR0hGAUUaU1czW08pTlAdRVUPG0xbT1BYVA0IUQgAGhIcUEBEDwNXFAEXVwIbAhFZAEtEWU5VW0JOOQFFY0RAW1cCUEBED1ANRhgLAx0XH0YBRRpTQE4aCgYJFl5HFEZXW0ICUEBEDwNRAAEXWgkbGgENCF0SBwsETV5MRhhQGjsoM1tPKTdVAUUKSlVeW09CMUgNPgpKVV5bT0FARBw4ZUpVNSw0UAELXwAYAw0eEgEBBRJIR2VKVTVVGxoJRE4NXQcFCwQbUDFIDT4aDhwJHwoATjkBRWNEGQEZCBceRnBJGD1XGh8KUgELXhEYAw0NHhsbAgMPOBRGLkwWHFIKBV4RGAcGTFtPUB8LDQNZFQFOFhxQMUgNPhoEEBoDCgBOSA1HXRAQAFcNFxgQSBcaSlVMAwcXTAZIFkxEKEJXNFAbC18WXURZTlUKBAkKDRJXFAYLVTIvQER2VBRGRUJXXl5MVQFFCEpVX1tPQkBEHEkYV1lOR0NSXUgNVWU7WU4sNENARB1JGFdZTkdDUlxIDVVlSlU1Q0NSXEgNUBRGREJXXF5MVgFFDjsoQlc0KTdGWgRLRhoeEgEXCEZwSRg9VxkWHFIOEUQJTEQoQlc0UA0WSEVLCRkKVTJeTD8PDEtGFgISDhwJAA84FEYuTAAKAAlETAFcAxFMKjIvQER2PghKVV9bT0JARB84ZTs=", "sol": "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"};
+const KEY="fun-world-e8-v1";
+const dec=s=>{const k="funworld-e8";const b=atob(s);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i)^k.charCodeAt(i%k.length);return JSON.parse(new TextDecoder().decode(u));};
+const KEYS=dec(DATA.k);
+const ST=DATA.stations, NMAIN=DATA.nMain;
+function fresh(){return {v:1,name:"",started:false,done:{},part:{},drafts:{},hints:{},tries:{}};}
+let S=fresh();
+try{const o=JSON.parse(localStorage.getItem(KEY)||"null"); if(o&&o.v===1) S=Object.assign(fresh(),o);}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>String(s||"").toLowerCase().replace(/[’‘`´]/g,"'").replace(/\s+/g," ").replace(/[.!?,;:]+$/,"").trim();
+let view="start", cur=0, toastT=null;
+function toast(t,ms){let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";el.setAttribute("role","status");document.body.appendChild(el);}el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,ms||2600);}
+const unlocked=i=>i<NMAIN?ST.slice(0,i).every(s=>S.done[s.id]):ST.slice(0,NMAIN).every(s=>S.done[s.id]);
+const mainDone=()=>ST.slice(0,NMAIN).every(s=>S.done[s.id]);
+
+function renderBar(){
+  document.getElementById("bar").hidden=!S.started;
+  document.getElementById("who").textContent="👋 "+(S.name||"");
+  document.getElementById("stamps").innerHTML=ST.map(s=>`<i class="${S.done[s.id]?"on":""}" style="--c:${s.color}" title="${esc(s.title)}">${S.done[s.id]?"✓":""}</i>`).join("");
+}
+/* ---------- art ---------- */
+function heroSVG(){
+  let flags="";for(let x=10;x<980;x+=40)flags+=`<path d="M${x} 10 l16 0 l-8 18z" fill="${["#e8505b","#ffd23f","#2a9d8f","#3a86ff","#f08c00"][(x/40|0)%5]}"/>`;
+  let wheel="";for(let a=0;a<10;a++){const t=a*Math.PI/5;wheel+=`<line x1="820" y1="130" x2="${820+80*Math.cos(t)}" y2="${130+80*Math.sin(t)}" stroke="#fff" stroke-width="3"/><rect x="${820+80*Math.cos(t)-9}" y="${130+80*Math.sin(t)-7}" width="18" height="16" rx="4" fill="${["#e8505b","#ffd23f","#2a9d8f","#3a86ff","#f08c00"][a%5]}"/>`;}
+  return `<svg viewBox="0 0 980 250" role="img" aria-label="Fun World: an amusement park on a sunny day with a ferris wheel, a roller coaster and a snack bar">
+  <rect width="980" height="250" fill="#bfe6ff"/><path d="M0 12 Q490 30 980 12" stroke="#999" fill="none"/>${flags}
+  <circle cx="110" cy="70" r="34" fill="#ffd23f"/><g fill="#fff"><ellipse cx="300" cy="70" rx="50" ry="16"/><ellipse cx="560" cy="50" rx="40" ry="13"/></g>
+  <g>${wheel}<circle cx="820" cy="130" r="80" fill="none" stroke="#fff" stroke-width="6"/><circle cx="820" cy="130" r="10" fill="#e8505b"/><path d="M820 130 L780 250 M820 130 L860 250" stroke="#fff" stroke-width="8"/></g>
+  <path d="M0 210 C80 210 110 80 190 80 C270 80 280 200 340 200 C400 200 410 120 470 120 C530 120 540 210 620 210" fill="none" stroke="#e8505b" stroke-width="8"/>
+  <path d="M190 80 V250 M340 200 V250 M470 120 V250 M90 160 V250 M560 170 V250" stroke="#a24b54" stroke-width="5"/>
+  <g transform="translate(160 56) rotate(4)"><rect width="56" height="22" rx="6" fill="#3a86ff"/><circle cx="14" cy="24" r="5" fill="#23263a"/><circle cx="42" cy="24" r="5" fill="#23263a"/><circle cx="16" cy="-4" r="6" fill="#f1c7a1"/><circle cx="38" cy="-4" r="6" fill="#c58a5c"/><path d="M12 -10 l-4 -10 M40 -10 l4 -10" stroke="#f1c7a1" stroke-width="3"/></g>
+  <g transform="translate(620 150)"><rect width="130" height="100" fill="#fff"/><path d="M-6 0 h142 l-10 22 h-122z" fill="#3a86ff"/>${[0,1,2,3,4,5].map(i=>`<path d="M${i*22} 0 h11 l-3 22 h-11z" fill="#fff"/>`).join("")}<text x="65" y="50" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="900" font-size="15" fill="#e8505b">SNACK BAR</text><rect x="16" y="60" width="98" height="10" fill="#23263a"/><text x="38" y="94" font-size="22">🍔🥤</text></g>
+  <rect y="238" width="980" height="12" fill="#7bc96f"/></svg>`;
+}
+function mapSVG(){
+  const T=(x,y,t,c)=>`<g transform="translate(${x} ${y})"><rect x="-46" y="-15" width="92" height="30" rx="8" fill="#fff" stroke="${c}" stroke-width="2.5"/><text y="5" text-anchor="middle" font-family="Avenir Next,Trebuchet MS,sans-serif" font-weight="800" font-size="12.5" fill="#23263a">${t}</text></g>`;
+  return `<svg viewBox="0 0 600 430" role="img" aria-label="Map of Fun World. The entrance with a star is at the bottom. Main Street goes up to the fountain and on to the Big Wheel and the Big Loop. From the fountain, a path goes left over a bridge to the Ghost Train and right past the ice cream stand to the snack bar and the toilets. From the entrance, Lake Path goes left to the Splash River.">
+  <rect width="600" height="430" fill="#cfeec0"/>
+  <path d="M170 0 C160 80 185 160 170 250 C160 300 150 330 110 360 C80 380 40 390 0 395 V430 H0" fill="none" stroke="#7cc4f2" stroke-width="26"/>
+  <ellipse cx="45" cy="395" rx="70" ry="30" fill="#7cc4f2"/>
+  <g stroke="#f2e3bf" stroke-width="30" stroke-linecap="round" fill="none"><path d="M300 405 V60"/><path d="M300 230 H560"/><path d="M300 230 H70"/><path d="M300 385 H120"/></g>
+  <g stroke="#e2cf9f" stroke-width="2" stroke-dasharray="8 8" fill="none"><path d="M300 405 V60"/><path d="M300 230 H560"/><path d="M300 230 H70"/><path d="M300 385 H120"/></g>
+  <rect x="150" y="216" width="42" height="28" rx="5" fill="#b98552" stroke="#8a5f35" stroke-width="2"/>
+  <circle cx="300" cy="230" r="22" fill="#9fd4f5" stroke="#fff" stroke-width="5"/><text x="300" y="236" text-anchor="middle" font-size="16">⛲</text>
+  ${T(225,60,"Big Wheel","#3a86ff")}${T(375,60,"Big Loop","#e8505b")}
+  ${T(95,180,"Ghost Train","#6a4cc2")}${T(410,190,"Ice cream","#f08c00")}${T(555,190,"Snack bar","#2a9d8f")}
+  ${T(555,272,"Toilets","#888")}${T(420,272,"Gift shop","#d6281c")}${T(70,345,"Splash River","#3a86ff")}
+  <text x="236" y="300" font-family="Avenir Next,sans-serif" font-weight="700" font-size="11" fill="#6b7a56" transform="rotate(-90 236 300)">MAIN STREET</text>
+  <text x="200" y="402" font-family="Avenir Next,sans-serif" font-weight="700" font-size="11" fill="#6b7a56">LAKE PATH</text>
+  <circle cx="300" cy="408" r="16" fill="#e8505b"/><text x="300" y="414" text-anchor="middle" font-size="16" fill="#fff">★</text>
+  <text x="330" y="420" font-family="Avenir Next,sans-serif" font-weight="800" font-size="12" fill="#23263a">You are here – Entrance</text>
+  <g transform="translate(560 30)"><circle r="18" fill="#fff" stroke="#23263a" stroke-width="2"/><path d="M0 -14 L5 0 L0 14 L-5 0Z" fill="#e8505b"/><text y="-21" text-anchor="middle" font-size="10" font-weight="800">N</text></g>
+  </svg>`;
+}
+function boardHTML(){const R=DATA.rides;return `<div class="boardbox"><div class="cap">FUN WORLD · RIDES TODAY</div><table><tr><th></th>${R.cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>${R.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;}
+const avatar=`<svg class="av" width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="#ffe9a8"/><path d="M10 64 q2-18 22-18 q20 0 22 18z" fill="#e8505b"/><circle cx="32" cy="30" r="14" fill="#f1c7a1"/><path d="M16 26 q0-14 16-14 q16 0 16 14z" fill="#e8505b"/><path d="M44 24 h10 q0 4-10 4z" fill="#e8505b"/><circle cx="27" cy="31" r="1.8" fill="#23263a"/><circle cx="37" cy="31" r="1.8" fill="#23263a"/><path d="M27 37 q5 4 10 0" stroke="#23263a" stroke-width="1.8" fill="none"/></svg>`;
+
+/* ---------- screens ---------- */
+function render(){renderBar(); ({start:renderStart,card:renderCard,station:renderStation,cert:renderCert})[view]();}
+function renderStart(){
+  app.innerHTML=`<section class="hero">${heroSVG()}<div class="in"><h1>Your shift at Fun World</h1>
+  <p class="lead">You're on a gap year in the USA and you've got a job at <b>Fun World</b>, a big amusement park. Today you work at four places in the park. Do a good job and get a stamp for every station!</p>
+  <div class="rules"><div class="rule"><span class="e">🎟️</span><span><b>4 stations</b>Do them in order. Each one gives you a stamp.</span></div>
+  <div class="rule"><span class="e">🔁</span><span><b>Try again</b>Wrong answers turn red. Correct them and check again.</span></div>
+  <div class="rule"><span class="e">💡</span><span><b>Hints</b>Stuck? Every part has a hint.</span></div>
+  <div class="rule"><span class="e">⭐</span><span><b>Bonus jobs</b>Finished early? Do the grammar bonus stations.</span></div></div>
+  <label for="nm" style="font-weight:800">Your first name</label>
+  <div class="field"><input id="nm" maxlength="24" autocomplete="off" placeholder="e.g. Lena" value="${esc(S.name)}"><button class="btn" id="go">Start my shift</button></div></div></section>`;
+  const go=()=>{const v=document.getElementById("nm").value.trim(); if(!v){toast("Please type your first name."); return;} S.name=v; S.started=true; save(); view="card"; render(); scrollTo(0,0);};
+  document.getElementById("go").onclick=go; document.getElementById("nm").onkeydown=e=>{if(e.key==="Enter")go();};
+}
+function booth(s,i){
+  const lock=!unlocked(i), done=S.done[s.id], next=!lock&&!done;
+  return `<button class="booth ${lock?"locked":""} ${next?"next":""}" data-i="${i}" style="--c:${s.color}" ${lock?"disabled":""} aria-label="${esc(s.title)} – ${done?"done":lock?"locked":"open"}">
+   <span class="roof"></span>${done?`<span class="stamp">FUN<br>WORLD<br>✓</span>`:""}<span class="b"><span class="no">${i<NMAIN?"Station "+(i+1):"Bonus"}</span><span class="ic">${lock?"🔒":s.icon}</span><span class="t">${esc(s.title)}</span><span class="s">${esc(s.sub)}</span><span class="st">${done?"✓ Stamp":lock?"locked":"▶ Start"}</span></span></button>`;
+}
+function renderCard(){
+  const all=mainDone();
+  app.innerHTML=`<section class="cardbox"><h2>Your stamp card</h2><p>${all?"Great job! You've got all four stamps. Get your certificate – or do the bonus jobs.":"Do the stations in order. The bouncing booth is your next job."}</p>
+  <div class="booths">${ST.slice(0,NMAIN).map(booth).join("")}</div>
+  <div class="bonushead">⭐ Bonus jobs ${all?"":"(open after all four stamps)"}</div><div class="bonusrow">${ST.slice(NMAIN).map((s,j)=>booth(s,NMAIN+j)).join("")}</div>
+  <div class="actions" style="padding:16px 0 0"><span class="sp"></span><button class="btn go" id="cert" ${all?"":"disabled"}>🏆 My certificate</button></div></section>`;
+  app.querySelectorAll(".booth[data-i]").forEach(b=>b.onclick=()=>{cur=+b.dataset.i; view="station"; render(); scrollTo(0,0);});
+  document.getElementById("cert").onclick=()=>{view="cert"; render(); scrollTo(0,0);};
+}
+const pk=()=>ST[cur].id+"-"+(S.part[ST[cur].id]||0);
+const draft=()=>S.drafts[pk()]||(S.drafts[pk()]={});
+function renderStation(){
+  const s=ST[cur], pi=S.part[s.id]||0, p=s.parts[pi];
+  app.innerHTML=`<section class="station" style="--c:${s.color}"><div class="st-head"><span class="ic">${s.icon}</span><div><div class="no">${cur<NMAIN?"Station "+(cur+1)+" of "+NMAIN:"Bonus job"} · Part ${pi+1} of ${s.parts.length}</div><h2>${esc(s.title)}</h2><div>${esc(s.sub)}</div></div></div>
+  <div class="st-awn"></div><div class="story">${avatar}<span>${esc(s.story)}</span></div>
+  <div class="dots">${s.parts.map((x,i)=>`<i class="${i<pi?"ok":i===pi?"on":""}"></i>`).join("")}</div>
+  <div class="task" id="task"></div><div id="hint"></div><div id="fb"></div>
+  <div class="actions"><button class="btn sec" id="back">← Stamp card</button><span class="sp"></span><button class="btn sec" id="hb">💡 Hint</button><button class="btn go" id="chk">Check</button></div></section>`;
+  const t=document.getElementById("task");
+  let pre=(p.board?boardHTML():"")+(p.map?`<div class="mapbox">${mapSVG()}</div>`:"");
+  ({mc:tMC,type:tType,order:tOrder,multi:tMulti})[p.type](t,p,pre);
+  document.getElementById("back").onclick=()=>{view="card"; render();};
+  document.getElementById("chk").onclick=()=>check(p);
+  const showHint=()=>{document.getElementById("hint").innerHTML=`<div class="hintbox">💡 ${esc(p.hint)}</div>`; document.getElementById("hb").hidden=true;};
+  document.getElementById("hb").onclick=()=>{S.hints[pk()]=true; save(); showHint();};
+  if(S.hints[pk()]) showHint();
+}
+function fb(c,t){document.getElementById("fb").innerHTML=`<div class="fb ${c}" role="status">${t}</div>`;}
+function tMC(el,p,pre){const d=draft(); d.a=d.a||[];
+  el.innerHTML=pre+`<p class="intro">${esc(p.intro)}</p>`+p.items.map((it,i)=>`<div class="q" id="q${i}"><div class="qt">${i+1}. ${esc(it.q)}</div><div class="opts">${it.opts.map((o,j)=>`<button class="opt ${d.a[i]===j?"sel":""}" data-i="${i}" data-j="${j}" aria-pressed="${d.a[i]===j}">${esc(o)}</button>`).join("")}</div></div>`).join("");
+  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{d.a[+b.dataset.i]=+b.dataset.j; save(); const q=b.closest(".q"); q.className="q"; q.querySelectorAll(".opt").forEach(x=>{const on=x===b; x.classList.toggle("sel",on); x.setAttribute("aria-pressed",on);});});
+}
+function tType(el,p,pre){const d=draft(); d.a=d.a||[];
+  el.innerHTML=pre+`<p class="intro">${esc(p.intro)}</p>`+p.items.map((it,i)=>`<div class="ln" id="q${i}"><span class="n">${i+1}</span>${it.q?`<span class="qq" style="margin-left:0">${esc(it.q)}</span><span class="n"></span>`:""}<span>${esc(it.pre)}</span><input id="t${i}" data-i="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(d.a[i]||"")}" aria-label="Gap ${i+1}"><span>${esc(it.post)}</span></div>`).join("");
+  el.querySelectorAll("input").forEach(x=>x.oninput=()=>{d.a[+x.dataset.i]=x.value; x.closest(".ln").className="ln"; save();});
+}
+function tOrder(el,p,pre){const d=draft(); if(!d.o||d.o.length!==p.items.length) d.o=p.items.map((_,i)=>i);
+  const draw=(marks)=>{el.innerHTML=pre+`<p class="intro">${esc(p.intro)}</p><div class="ordl">`+d.o.map((ix,k)=>`<div class="oi ${marks?marks[k]:""}"><span class="pos">${k+1}</span><span class="tx">${esc(p.items[ix])}</span><span class="mv"><button data-k="${k}" data-d="-1" aria-label="Move up" ${k===0?"disabled":""}>▲</button><button data-k="${k}" data-d="1" aria-label="Move down" ${k===d.o.length-1?"disabled":""}>▼</button></span></div>`).join("")+`</div>`;
+    el.querySelectorAll(".mv button").forEach(b=>b.onclick=()=>{const k=+b.dataset.k, j=k+(+b.dataset.d); [d.o[k],d.o[j]]=[d.o[j],d.o[k]]; save(); draw();});};
+  el._draw=draw; draw();
+}
+function tMulti(el,p,pre){const d=draft(); d.s=d.s||[];
+  el.innerHTML=pre+`<p class="intro">${esc(p.intro)}</p><div class="words">`+p.words.map((w,i)=>`<button class="wd ${d.s.includes(i)?"sel":""}" data-i="${i}" aria-pressed="${d.s.includes(i)}">${esc(w)}</button>`).join("")+`</div>`;
+  el.querySelectorAll(".wd").forEach(b=>b.onclick=()=>{const i=+b.dataset.i; d.s=d.s.includes(i)?d.s.filter(x=>x!==i):[...d.s,i]; save(); tMulti(el,p,pre);});
+}
+function check(p){
+  const s=ST[cur], pi=S.part[s.id]||0, K=KEYS[cur][pi], d=draft(); let ok=0,total=0;
+  if(p.type==="mc"){total=p.items.length; if(d.a.filter(x=>x!=null).length<total) return fb("info","Answer every question first.");
+    p.items.forEach((_,i)=>{const g=d.a[i]===K[i]; ok+=g; document.getElementById("q"+i).className="q "+(g?"good":"bad");});}
+  else if(p.type==="type"){total=p.items.length; if(p.items.some((_,i)=>!norm(d.a[i]))) return fb("info","Fill in every gap first.");
+    p.items.forEach((_,i)=>{const g=K[i].map(norm).includes(norm(d.a[i])); ok+=g; document.getElementById("q"+i).className="ln "+(g?"good":"bad");});}
+  else if(p.type==="order"){total=d.o.length; const marks=d.o.map((ix,k)=>ix===K[k]?"good":"bad"); ok=marks.filter(x=>x==="good").length; document.getElementById("task")._draw(marks);}
+  else if(p.type==="multi"){total=p.words.length; p.words.forEach((_,i)=>{const sel=d.s.includes(i); if(sel===!!K[i]) ok++; else if(sel) document.querySelector(`.wd[data-i="${i}"]`).classList.add("bad");});
+    if(ok<total){const miss=p.words.filter((_,i)=>K[i]&&!d.s.includes(i)).length; S.tries[pk()]=(S.tries[pk()]||0)+1; save(); return fb("bad",`Not yet! ${miss?`You've missed ${miss} word${miss>1?"s":""}.`:""} Red words don't mean ‘great’.`);}}
+  S.tries[pk()]=(S.tries[pk()]||0)+1; save();
+  if(ok<total) return fb("bad",`${ok} of ${total} correct. Look at the red ones and try again!`);
+  if(pi<s.parts.length-1){S.part[s.id]=pi+1; save(); toast("✓ Well done! On to part "+(pi+2)+"."); renderStation(); scrollTo(0,0); return;}
+  S.done[s.id]=true; save(); bigStamp(s); view="card"; render(); scrollTo(0,0);
+}
+function bigStamp(s){const o=document.createElement("div"); o.className="bigstamp"; o.style.setProperty("--c",s.color); o.innerHTML=`<div>${esc(s.title)}<br>✓ DONE</div>`; document.body.appendChild(o); setTimeout(()=>o.remove(),1400); toast(`🎉 You've got the ${s.title} stamp!`);}
+function renderCert(){
+  const date=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  app.innerHTML=`<section class="cert"><div style="font-size:42px" aria-hidden="true">🎡🎢🍔</div><div style="letter-spacing:.2em;font-weight:800;color:var(--muted)">CERTIFICATE</div>
+  <h2>Employee of the Day</h2><div>Fun World is proud of</div><div class="name">${esc(S.name)}</div><div>for a great shift at the info desk, the map point, the ride check and the snack bar.</div>
+  <div class="stampline">${ST.filter(s=>S.done[s.id]).map(s=>`<span style="--c:${s.color}">${esc(s.title).toUpperCase()}<br>✓</span>`).join("")}</div>
+  <div style="color:var(--muted)">${esc(date)}</div>
+  <div class="roleplay"><b>🎭 Now act it out!</b> Find two partners. A works at the snack bar, B and C are customers. Use your dialogue from station 4 – and add your own ideas (a different order, no small change, a complaint …).</div>
+  <div class="actions" style="justify-content:center"><button class="btn sec" id="back">← Stamp card</button></div></section>`;
+  document.getElementById("back").onclick=()=>{view="card"; render();};
+}
+/* teacher */
+if(/[?&]teacher\b/.test(location.search)){const b=document.getElementById("tBtn"); b.hidden=false; b.onclick=teacher;}
+let tOK=false;
+function teacher(){const p=document.createElement("div"); p.className="tpanel"; const close=()=>p.remove();
+  if(!tOK){p.innerHTML=`<div class="in"><h3>Teacher mode</h3><div class="row"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric"><button class="btn go" id="ok">Open</button><button class="btn sec" id="x">Close</button></div><div id="m"></div></div>`; document.body.appendChild(p);
+    p.querySelector("#x").onclick=close; p.querySelector("#ok").onclick=()=>{if(p.querySelector("#pin").value.trim()==="1985"){tOK=true; close(); teacher();} else p.querySelector("#m").textContent="Wrong PIN.";}; return;}
+  const sol=dec(DATA.sol);
+  p.innerHTML=`<div class="in"><h3>Teacher mode – solutions</h3><div class="row"><button class="btn go" id="skip">Stamp current station</button><button class="btn sec" id="rs">Reset this iPad</button><button class="btn sec" id="x">Close</button></div><div id="ra"></div>
+  ${sol.map(s=>`<div class="sol"><b>${esc(s.title)}</b><br>${s.parts.map(x=>x.map(esc).join("<br>")).join("<hr>")}</div>`).join("")}</div>`;
+  document.body.appendChild(p); p.querySelector("#x").onclick=close;
+  p.querySelector("#skip").onclick=()=>{const i=ST.findIndex((s,k)=>unlocked(k)&&!S.done[s.id]); if(i<0) return; if(!S.started){S.started=true; S.name=S.name||"Teacher";} S.done[ST[i].id]=true; save(); close(); view="card"; render();};
+  p.querySelector("#rs").onclick=()=>{p.querySelector("#ra").innerHTML=`<div class="row"><b>Delete all progress on this iPad?</b><button class="btn" id="y">Yes, reset</button></div>`; p.querySelector("#y").onclick=()=>{S=fresh(); try{localStorage.removeItem(KEY);}catch(e){} close(); view="start"; render();};};
+}
+view=S.started?"card":"start"; render();
+</script>
+</body>
+</html>
